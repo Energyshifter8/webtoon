@@ -1,6 +1,6 @@
 "use client";
 
-import { onAuthStateChanged, type User } from "firebase/auth";
+import { onAuthStateChanged, type User, getIdTokenResult } from "firebase/auth";
 import { doc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
 import { auth, db } from "@/lib/firebase";
@@ -29,16 +29,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const [currentUser, setCurrentUser] = useState<User | null>(null);
 	const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 	const [loading, setLoading] = useState(true);
+	const [adminClaim, setAdminClaim] = useState(false);
 
 	useEffect(() => {
 		const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
 			setCurrentUser(user);
+			setAdminClaim(false);
 
 			if (!user) {
 				setUserProfile(null);
 				setLoading(false);
 				return;
 			}
+
+			// read id token claims to detect custom 'admin' claim
+			getIdTokenResult(user)
+				.then((res) => setAdminClaim(Boolean(res.claims?.admin)))
+				.catch(() => setAdminClaim(false));
 
 			const userDocRef = doc(db, "users", user.uid);
 
@@ -88,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}, []);
 
 	const membershipStatus = userProfile?.membershipStatus ?? "none";
-	const isAdmin = userProfile?.role === "admin";
+	const isAdmin = userProfile?.role === "admin" || adminClaim;
 
 	const activateMembership = async () => {
 		if (!currentUser) return;
