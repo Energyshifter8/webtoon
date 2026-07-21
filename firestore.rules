@@ -13,20 +13,22 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
 
+    // Comics collection - publicly readable
+    match /comics/{comicId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // Users collection
     match /users/{userId} {
       // Users can read their own document; admins can read any
       allow read: if isOwner(userId) || isAdmin();
 
-      // Users can create their own document on signup (membershipStatus must start as "none")
-      allow create: if isOwner(userId) &&
-        request.resource.data.membershipStatus == "none";
+      // Users can create their own document on signup
+      allow create: if isOwner(userId);
 
-      // Users can update their own document, but only membershipStatus can change (and only to "free")
-      // Admins can update any field (including setting "paid")
-      allow update: if (isOwner(userId) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['membershipStatus']) &&
-        request.resource.data.membershipStatus == "free") || isAdmin();
+      // Users can update their own document; admins can update any
+      allow update: if isOwner(userId) || isAdmin();
 
       // Only admins can delete user documents
       allow delete: if isAdmin();
