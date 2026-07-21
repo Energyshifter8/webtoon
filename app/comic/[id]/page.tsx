@@ -10,27 +10,45 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { getComicById } from "@/lib/comics";
-import type { Comic } from "@/types/comic";
+
+interface ComicData {
+	id: string;
+	title: string;
+	description: string;
+	cover: string;
+	posterUrl?: string;
+	pdfUrl?: string;
+	author: string;
+	episodeCount: number;
+	accessLevel: "free" | "premium";
+	genres: string[];
+	[key: string]: unknown;
+}
 
 export default function ComicPage() {
 	const params = useParams();
 	const router = useRouter();
 	const comicId = params.id as string;
 	const { currentUser, membershipStatus, loading: authLoading } = useAuth();
-	const [comic, setComic] = useState<Comic | null>(null);
+	const [comic, setComic] = useState<ComicData | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [authModalOpen, setAuthModalOpen] = useState(false);
 	const [membershipModalOpen, setMembershipModalOpen] = useState(false);
+	const [showPdf, setShowPdf] = useState(false);
+	const [pdfPage, setPdfPage] = useState(1);
 
 	useEffect(() => {
 		if (!comicId) return;
 		getComicById(comicId)
-			.then(setComic)
+			.then((c) => setComic(c as unknown as ComicData))
 			.catch(() => setComic(null))
 			.finally(() => setLoading(false));
 	}, [comicId]);
 
-	const hasAccess = currentUser && membershipStatus !== "none" && comic?.accessLevel === "free";
+	const hasAccess =
+		currentUser &&
+		membershipStatus !== "none" &&
+		(comic?.accessLevel === "free" || membershipStatus === "premium");
 	const showAuthPrompt = !authLoading && !currentUser;
 	const showMembershipPrompt = !authLoading && currentUser && membershipStatus === "none";
 
@@ -42,6 +60,8 @@ export default function ComicPage() {
 			setMembershipModalOpen(true);
 		}
 	}, [loading, authLoading, showAuthPrompt, showMembershipPrompt]);
+
+	const coverImage = comic?.posterUrl || comic?.cover || "";
 
 	if (loading) {
 		return (
@@ -112,7 +132,7 @@ export default function ComicPage() {
 				<div className="animate-slide-up overflow-hidden rounded-2xl border border-border/50 bg-card shadow-xl">
 					<div className="relative aspect-[21/9] overflow-hidden">
 						<Image
-							src={comic.cover}
+							src={coverImage}
 							alt={comic.title}
 							fill
 							className="object-cover"
@@ -127,9 +147,11 @@ export default function ComicPage() {
 										<span className="rounded-full bg-primary/90 px-3 py-1 text-xs font-medium text-primary-foreground backdrop-blur-sm">
 											{comic.accessLevel === "free" ? "Free" : "Premium"}
 										</span>
-										<span className="rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
-											{comic.episodeCount} {comic.episodeCount === 1 ? "Episode" : "Episodes"}
-										</span>
+										{comic.episodeCount > 0 && (
+											<span className="rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+												{comic.episodeCount} {comic.episodeCount === 1 ? "Episode" : "Episodes"}
+											</span>
+										)}
 									</div>
 									<h1 className="text-3xl font-bold text-white drop-shadow-lg md:text-4xl">
 										{comic.title}
@@ -147,37 +169,59 @@ export default function ComicPage() {
 
 				<div className="mt-10">
 					{hasAccess ? (
-						<div className="animate-slide-up">
-							<div className="mb-6 flex items-center gap-3">
-								<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-									📚
-								</div>
-								<h2 className="text-2xl font-bold">Episodes</h2>
-							</div>
-							<div className="flex flex-col gap-3">
-								{Array.from({ length: comic.episodeCount }, (_, i) => i + 1).map((ep) => (
-									<div
-										key={ep}
-										className="group flex items-center justify-between rounded-xl border border-border/50 bg-card p-5 transition-all hover:border-primary/30 hover:shadow-md hover:shadow-primary/5"
+						<div className="animate-slide-up space-y-6">
+							{comic.pdfUrl && (
+								<div className="flex flex-col gap-4 sm:flex-row">
+									<Button
+										onClick={() => setShowPdf(!showPdf)}
+										className="flex-1 rounded-xl py-3 text-base font-medium transition-all hover:shadow-lg hover:shadow-primary/25"
 									>
-										<div className="flex items-center gap-4">
-											<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 font-bold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-												{ep}
-											</div>
-											<div>
-												<p className="font-semibold">Episode {ep}</p>
-												<p className="text-sm text-muted-foreground">Read now</p>
-											</div>
-										</div>
+										{showPdf ? "Close Reader" : "Read Online"}
+									</Button>
+									<a
+										href={comic.pdfUrl}
+										download
+										className="inline-flex flex-1 items-center justify-center rounded-xl border border-border bg-card py-3 text-base font-medium transition-all hover:border-primary/50 hover:bg-muted"
+									>
+										Download PDF
+									</a>
+								</div>
+							)}
+
+							{showPdf && comic.pdfUrl && (
+								<div className="rounded-2xl border border-border/50 bg-card shadow-lg overflow-hidden">
+									<div className="flex items-center justify-between border-b border-border/50 bg-muted/50 px-4 py-3">
 										<Button
 											size="sm"
-											className="rounded-xl transition-all hover:shadow-lg hover:shadow-primary/25"
+											variant="ghost"
+											onClick={() => setPdfPage((p) => Math.max(1, p - 1))}
+											disabled={pdfPage <= 1}
 										>
-											Read
+											← Prev
+										</Button>
+										<span className="text-sm text-muted-foreground">Page {pdfPage}</span>
+										<Button
+											size="sm"
+											variant="ghost"
+											onClick={() => setPdfPage((p) => p + 1)}
+										>
+											Next →
 										</Button>
 									</div>
-								))}
-							</div>
+									<iframe
+										src={`${comic.pdfUrl}#page=${pdfPage}`}
+										className="h-[80vh] w-full"
+										title="PDF Reader"
+									/>
+								</div>
+							)}
+
+							{!comic.pdfUrl && (
+								<div className="flex flex-col items-center gap-3 rounded-2xl border border-border/50 bg-card p-10 text-center">
+									<div className="text-4xl">📚</div>
+									<p className="text-muted-foreground">Episodes will appear here.</p>
+								</div>
+							)}
 						</div>
 					) : showAuthPrompt ? (
 						<div className="animate-slide-up flex flex-col items-center gap-6 rounded-2xl border border-border/50 bg-card p-12 text-center shadow-lg">

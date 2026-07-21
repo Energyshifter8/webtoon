@@ -49,18 +49,23 @@ export default function SignupPage() {
 		try {
 			const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
 			const user = userCredential.user;
+			console.log("[signup] Auth user created:", user.uid);
 
 			await updateProfile(user, { displayName: data.displayName });
+			console.log("[signup] Profile updated with displayName");
 
+			console.log("[signup] Writing Firestore doc: users/" + user.uid);
 			await setDoc(doc(db, "users", user.uid), {
 				email: data.email,
 				displayName: data.displayName,
 				membershipStatus: "none",
 				createdAt: serverTimestamp(),
 			});
+			console.log("[signup] Firestore doc written successfully");
 
 			router.push("/");
 		} catch (err: unknown) {
+			console.error("[signup] Error during signup:", err);
 			if (err instanceof Error) {
 				if (err.message.includes("auth/email-already-in-use")) {
 					setError("An account with this email already exists.");
