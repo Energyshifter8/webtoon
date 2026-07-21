@@ -8,14 +8,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { auth } from "@/lib/firebase";
@@ -67,60 +59,93 @@ export default function LoginPage() {
 	};
 
 	return (
-		<div className="flex flex-1 items-center justify-center bg-zinc-50 px-4 py-12 dark:bg-black">
-			<Card className="w-full max-w-sm">
-				<CardHeader className="text-center">
-					<CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-					<CardDescription>Log in to your account</CardDescription>
-				</CardHeader>
-				<form onSubmit={form.handleSubmit(onSubmit)}>
-					<CardContent className="flex flex-col gap-4">
+		<div className="flex min-h-screen">
+			<div className="hidden flex-1 items-center justify-center lg:flex">
+				<div className="gradient-hero flex h-full w-full flex-col items-center justify-center p-12 text-white">
+					<div className="animate-float mb-8 text-8xl">📖</div>
+					<h1 className="mb-4 text-4xl font-bold tracking-tight">Webtoon</h1>
+					<p className="max-w-sm text-center text-lg text-white/80">
+						Discover immersive stories, stunning artwork, and endless scrolling adventures.
+					</p>
+					<div className="mt-10 flex gap-3">
+						<div className="h-2 w-2 rounded-full bg-white/40" />
+						<div className="h-2 w-2 rounded-full bg-white/70" />
+						<div className="h-2 w-2 rounded-full bg-white/40" />
+					</div>
+				</div>
+			</div>
+
+			<div className="flex flex-1 items-center justify-center px-6 py-12">
+				<div className="w-full max-w-sm space-y-8">
+					<div>
+						<Link href="/" className="mb-8 inline-block text-2xl font-bold gradient-text lg:hidden">
+							Webtoon
+						</Link>
+						<h2 className="text-3xl font-bold tracking-tight">Welcome back</h2>
+						<p className="mt-2 text-sm text-muted-foreground">
+							Log in to continue your reading journey
+						</p>
+					</div>
+
+					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
 						{error && (
-							<div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+							<div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
 								{error}
 							</div>
 						)}
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="email">Email</Label>
+
+						<div className="space-y-2">
+							<Label htmlFor="email" className="text-sm font-medium">
+								Email
+							</Label>
 							<Input
 								id="email"
 								type="email"
 								placeholder="you@example.com"
+								className="h-12 rounded-xl border-border/50 bg-muted/30 px-4 transition-all focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/20"
 								{...form.register("email")}
 							/>
 							{form.formState.errors.email && (
 								<p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
 							)}
 						</div>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="password">Password</Label>
+
+						<div className="space-y-2">
+							<Label htmlFor="password" className="text-sm font-medium">
+								Password
+							</Label>
 							<Input
 								id="password"
 								type="password"
 								placeholder="Your password"
+								className="h-12 rounded-xl border-border/50 bg-muted/30 px-4 transition-all focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/20"
 								{...form.register("password")}
 							/>
 							{form.formState.errors.password && (
 								<p className="text-xs text-destructive">{form.formState.errors.password.message}</p>
 							)}
 						</div>
-					</CardContent>
-					<CardFooter className="flex flex-col gap-4">
-						<Button type="submit" className="w-full" disabled={loading}>
+
+						<Button
+							type="submit"
+							className="h-12 w-full rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-primary/25"
+							disabled={loading}
+						>
 							{loading ? "Logging in..." : "Log in"}
 						</Button>
-						<p className="text-sm text-muted-foreground">
-							Don&apos;t have an account?{" "}
-							<Link
-								href="/signup"
-								className="font-medium text-primary underline-offset-4 hover:underline"
-							>
-								Sign up
-							</Link>
-						</p>
-					</CardFooter>
-				</form>
-			</Card>
+					</form>
+
+					<p className="text-center text-sm text-muted-foreground">
+						Don&apos;t have an account?{" "}
+						<Link
+							href="/signup"
+							className="font-medium text-primary transition-colors hover:text-primary/80"
+						>
+							Sign up
+						</Link>
+					</p>
+				</div>
+			</div>
 		</div>
 	);
 }

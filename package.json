@@ -13,6 +13,7 @@
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.6.0",
+		"@dataconnect/generated": "link:src/dataconnect-generated",
 		"@hookform/resolvers": "^3.10.0",
 		"@react-three/drei": "^10.7.7",
 		"@react-three/fiber": "^9.6.1",

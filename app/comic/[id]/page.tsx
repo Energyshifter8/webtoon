@@ -8,7 +8,6 @@ import { AuthModal } from "@/components/auth-modal";
 import { MembershipModal } from "@/components/membership-modal";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
 import { getComicById } from "@/lib/comics";
 import type { Comic } from "@/types/comic";
@@ -46,132 +45,190 @@ export default function ComicPage() {
 
 	if (loading) {
 		return (
-			<div className="flex flex-1 items-center justify-center bg-zinc-50 dark:bg-black">
-				<p className="text-muted-foreground">Loading comic...</p>
+			<div className="flex flex-1 items-center justify-center bg-background">
+				<div className="flex flex-col items-center gap-4">
+					<div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+					<p className="text-sm text-muted-foreground">Loading comic...</p>
+				</div>
 			</div>
 		);
 	}
 
 	if (!comic) {
 		return (
-			<div className="flex flex-1 flex-col items-center justify-center bg-zinc-50 gap-4 dark:bg-black">
-				<p className="text-lg text-muted-foreground">Comic not found.</p>
-				<Link href="/" className="text-sm font-medium text-primary hover:underline">
-					Back to home
+			<div className="flex flex-1 flex-col items-center justify-center bg-background gap-6 px-6">
+				<div className="text-6xl">😕</div>
+				<div className="text-center">
+					<h2 className="text-2xl font-bold">Comic not found</h2>
+					<p className="mt-2 text-muted-foreground">
+						The comic you&apos;re looking for doesn&apos;t exist.
+					</p>
+				</div>
+				<Link href="/">
+					<Button className="rounded-xl px-6">Back to home</Button>
 				</Link>
 			</div>
 		);
 	}
 
 	return (
-		<div className="flex flex-1 flex-col bg-zinc-50 dark:bg-black">
-			<header className="flex items-center justify-between border-b px-6 py-4">
-				<button
-					type="button"
-					onClick={() => router.push("/")}
-					className="text-xl font-bold hover:opacity-80"
-				>
-					Webtoon
-				</button>
-				<div className="flex items-center gap-3">
-					<ThemeToggle />
-					{currentUser ? (
-						<Button variant="ghost" size="sm">
-							{currentUser.displayName || currentUser.email}
-						</Button>
-					) : (
-						<div className="flex gap-2">
-							<Link
-								href="/login"
-								className="inline-flex h-7 items-center gap-1 rounded-lg px-2.5 text-sm font-medium hover:bg-muted hover:text-foreground"
-							>
-								Log in
-							</Link>
-							<Link
-								href="/signup"
-								className="inline-flex h-7 items-center gap-1.5 rounded-lg bg-primary px-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/80"
-							>
-								Sign up
-							</Link>
-						</div>
-					)}
-				</div>
-			</header>
-
-			<main className="flex flex-1 flex-col items-center px-6 py-10">
-				<div className="w-full max-w-3xl">
-					<Card className="overflow-hidden">
-						<div className="flex aspect-[16/9] items-center justify-center bg-muted p-8">
-							<Image
-								src={comic.cover}
-								alt={comic.title}
-								width={800}
-								height={450}
-								className="h-full w-full object-contain"
-							/>
-						</div>
-						<CardContent className="flex flex-col gap-4 p-6">
-							<div>
-								<h1 className="text-2xl font-bold">{comic.title}</h1>
-								<p className="text-sm text-muted-foreground">by {comic.author}</p>
-							</div>
-							<p className="text-muted-foreground">{comic.description}</p>
-							<div className="flex items-center gap-4 text-sm text-muted-foreground">
-								<span>
-									{comic.episodeCount} {comic.episodeCount === 1 ? "episode" : "episodes"}
-								</span>
-								<span className="capitalize">{comic.accessLevel}</span>
-							</div>
-						</CardContent>
-					</Card>
-
-					<div className="mt-8">
-						{hasAccess ? (
-							<div className="flex flex-col gap-4">
-								<h2 className="text-lg font-semibold">Episodes</h2>
-								<div className="flex flex-col gap-3">
-									{Array.from({ length: comic.episodeCount }, (_, i) => i + 1).map((ep) => (
-										<div
-											key={ep}
-											className="flex items-center justify-between rounded-lg border bg-card p-4"
-										>
-											<div>
-												<p className="font-medium">Episode {ep}</p>
-												<p className="text-sm text-muted-foreground">Read now</p>
-											</div>
-											<Button size="sm">Read</Button>
-										</div>
-									))}
-								</div>
-							</div>
-						) : showAuthPrompt ? (
-							<div className="flex flex-col items-center gap-4 rounded-xl border bg-card p-10 text-center">
-								<p className="text-lg font-medium">Log in to read</p>
-								<p className="text-sm text-muted-foreground">
-									Create a free account to start reading {comic.title}.
-								</p>
-								<Button onClick={() => setAuthModalOpen(true)}>Log in</Button>
-							</div>
-						) : showMembershipPrompt ? (
-							<div className="flex flex-col items-center gap-4 rounded-xl border bg-card p-10 text-center">
-								<p className="text-lg font-medium">Activate membership</p>
-								<p className="text-sm text-muted-foreground">
-									Even free comics require activating your membership. It&apos;s free — one click
-									and you&apos;re in.
-								</p>
-								<Button onClick={() => setMembershipModalOpen(true)}>
-									Activate free membership
-								</Button>
-							</div>
+		<div className="min-h-screen bg-background">
+			<header className="glass sticky top-0 z-50 border-b border-border/50">
+				<div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+					<button
+						type="button"
+						onClick={() => router.push("/")}
+						className="text-xl font-bold gradient-text"
+					>
+						Webtoon
+					</button>
+					<div className="flex items-center gap-4">
+						<ThemeToggle />
+						{currentUser ? (
+							<Button variant="ghost" size="sm">
+								{currentUser.displayName || currentUser.email}
+							</Button>
 						) : (
-							<div className="flex flex-col items-center gap-4 rounded-xl border bg-card p-10 text-center">
-								<p className="text-lg font-medium">Premium content</p>
-								<p className="text-sm text-muted-foreground">
-									This comic requires a premium membership to read.
-								</p>
+							<div className="flex gap-2">
+								<Link
+									href="/login"
+									className="inline-flex h-9 items-center rounded-xl px-4 text-sm font-medium transition-colors hover:bg-muted"
+								>
+									Log in
+								</Link>
+								<Link
+									href="/signup"
+									className="inline-flex h-9 items-center rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25"
+								>
+									Sign up
+								</Link>
 							</div>
 						)}
 					</div>
+				</div>
+			</header>
+
+			<main className="mx-auto max-w-4xl px-6 py-10">
+				<div className="animate-slide-up overflow-hidden rounded-2xl border border-border/50 bg-card shadow-xl">
+					<div className="relative aspect-[21/9] overflow-hidden">
+						<Image
+							src={comic.cover}
+							alt={comic.title}
+							fill
+							className="object-cover"
+							sizes="(max-width: 768px) 100vw, 896px"
+							priority
+						/>
+						<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+						<div className="absolute bottom-0 left-0 right-0 p-8">
+							<div className="flex items-end justify-between gap-6">
+								<div>
+									<div className="mb-3 flex items-center gap-2">
+										<span className="rounded-full bg-primary/90 px-3 py-1 text-xs font-medium text-primary-foreground backdrop-blur-sm">
+											{comic.accessLevel === "free" ? "Free" : "Premium"}
+										</span>
+										<span className="rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+											{comic.episodeCount} {comic.episodeCount === 1 ? "Episode" : "Episodes"}
+										</span>
+									</div>
+									<h1 className="text-3xl font-bold text-white drop-shadow-lg md:text-4xl">
+										{comic.title}
+									</h1>
+									<p className="mt-2 text-sm text-white/80">by {comic.author}</p>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div className="p-8">
+						<p className="text-muted-foreground leading-relaxed">{comic.description}</p>
+					</div>
+				</div>
+
+				<div className="mt-10">
+					{hasAccess ? (
+						<div className="animate-slide-up">
+							<div className="mb-6 flex items-center gap-3">
+								<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+									📚
+								</div>
+								<h2 className="text-2xl font-bold">Episodes</h2>
+							</div>
+							<div className="flex flex-col gap-3">
+								{Array.from({ length: comic.episodeCount }, (_, i) => i + 1).map((ep) => (
+									<div
+										key={ep}
+										className="group flex items-center justify-between rounded-xl border border-border/50 bg-card p-5 transition-all hover:border-primary/30 hover:shadow-md hover:shadow-primary/5"
+									>
+										<div className="flex items-center gap-4">
+											<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 font-bold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+												{ep}
+											</div>
+											<div>
+												<p className="font-semibold">Episode {ep}</p>
+												<p className="text-sm text-muted-foreground">Read now</p>
+											</div>
+										</div>
+										<Button
+											size="sm"
+											className="rounded-xl transition-all hover:shadow-lg hover:shadow-primary/25"
+										>
+											Read
+										</Button>
+									</div>
+								))}
+							</div>
+						</div>
+					) : showAuthPrompt ? (
+						<div className="animate-slide-up flex flex-col items-center gap-6 rounded-2xl border border-border/50 bg-card p-12 text-center shadow-lg">
+							<div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/10 text-4xl">
+								🔐
+							</div>
+							<div>
+								<h3 className="text-xl font-bold">Log in to read</h3>
+								<p className="mt-2 max-w-sm text-muted-foreground">
+									Create a free account to start reading {comic.title}.
+								</p>
+							</div>
+							<Button
+								onClick={() => setAuthModalOpen(true)}
+								className="rounded-xl px-8 font-medium transition-all hover:shadow-lg hover:shadow-primary/25"
+							>
+								Log in
+							</Button>
+						</div>
+					) : showMembershipPrompt ? (
+						<div className="animate-slide-up flex flex-col items-center gap-6 rounded-2xl border border-border/50 bg-card p-12 text-center shadow-lg">
+							<div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 text-4xl text-white shadow-lg shadow-amber-500/25">
+								⚡
+							</div>
+							<div>
+								<h3 className="text-xl font-bold">Activate membership</h3>
+								<p className="mt-2 max-w-sm text-muted-foreground">
+									Even free comics require activating your membership. It&apos;s free — one click
+									and you&apos;re in.
+								</p>
+							</div>
+							<Button
+								onClick={() => setMembershipModalOpen(true)}
+								className="rounded-xl px-8 font-medium transition-all hover:shadow-lg hover:shadow-primary/25"
+							>
+								Activate free membership
+							</Button>
+						</div>
+					) : (
+						<div className="animate-slide-up flex flex-col items-center gap-6 rounded-2xl border border-border/50 bg-card p-12 text-center shadow-lg">
+							<div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-purple-400 to-pink-500 text-4xl text-white shadow-lg shadow-purple-500/25">
+								👑
+							</div>
+							<div>
+								<h3 className="text-xl font-bold">Premium content</h3>
+								<p className="mt-2 max-w-sm text-muted-foreground">
+									This comic requires a premium membership to read.
+								</p>
+							</div>
+						</div>
+					)}
 				</div>
 			</main>
 
