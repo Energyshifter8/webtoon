@@ -21,7 +21,9 @@ function Scene() {
 	return (
 		<>
 			<CameraRig />
-			<ambientLight intensity={0.5} />
+			<ambientLight intensity={1.2} />
+			<directionalLight position={[5, 5, 5]} intensity={0.8} />
+			<directionalLight position={[-5, 3, -5]} intensity={0.4} />
 
 			{POSTERS.map((poster, i) => {
 				const card = cards[i];
@@ -57,7 +59,7 @@ export function WorldCanvas() {
 					far: 100,
 					position: [0, 0, 8],
 				}}
-				dpr={[1, 1.5]}
+				dpr={[1, 2]}
 				gl={{
 					antialias: true,
 					alpha: true,

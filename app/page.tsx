@@ -140,7 +140,7 @@ export default function Home() {
 				<main className="pt-20">
 					<div className="mb-8 px-6 text-center">
 						<h2 className="mb-2 text-3xl font-bold tracking-tight">
-							<span className="gradient-text">Discover</span> Comics
+							Discover Comics
 						</h2>
 						<p className="text-muted-foreground">
 							Browse our collection — no account needed to explore.
@@ -162,19 +162,14 @@ export default function Home() {
 				</div>
 			)}
 
-			{/* Empty state (desktop 3D still shows even if no comics) */}
+			{/* Empty state */}
 			{!loading && comics.length === 0 && isMobile && (
-				<main className="flex flex-col items-center justify-center gap-6 pt-32 text-center px-6">
-					<div className="text-6xl">📚</div>
-					<div>
-						<h2 className="text-3xl font-bold tracking-tight">
-							<span className="gradient-text">Discover</span> Comics
-						</h2>
-						<p className="mt-3 text-lg text-muted-foreground">No comics yet.</p>
-						<p className="mt-1 text-sm text-muted-foreground">
-							Add comics to the <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">comics</code> collection in Firestore.
-						</p>
-					</div>
+				<main className="flex flex-col items-center justify-center gap-4 pt-32 text-center px-6">
+					<div className="text-5xl">📚</div>
+					<p className="text-lg text-muted-foreground">No comics yet.</p>
+					<p className="text-sm text-muted-foreground">
+						Add comics to the <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">comics</code> collection in Firestore.
+					</p>
 				</main>
 			)}
 

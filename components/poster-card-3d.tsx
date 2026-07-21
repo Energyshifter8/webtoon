@@ -1,7 +1,7 @@
 "use client";
 
-import { Html } from "@react-three/drei";
-import type * as THREE from "three";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import * as THREE from "three";
 import type { Poster } from "@/lib/posters";
 
 interface PosterCard3DProps {
@@ -11,81 +11,58 @@ interface PosterCard3DProps {
 	onClick: (posterId: string) => void;
 }
 
+const CARD_WIDTH = 2.2;
+const CARD_HEIGHT = 3.0;
+
+function encodeImageSrc(src: string): string {
+	if (src.startsWith("http")) return src;
+	const parts = src.split("/");
+	parts[parts.length - 1] = encodeURIComponent(parts[parts.length - 1]);
+	return parts.join("/");
+}
+
+const loader = new THREE.TextureLoader();
+
 export function PosterCard3D({ poster, position, tangent, onClick }: PosterCard3DProps) {
-	const angle = Math.atan2(tangent.x, tangent.z);
+	const [texture, setTexture] = useState<THREE.Texture | null>(null);
+	const angle = useMemo(() => Math.atan2(tangent.x, tangent.z), [tangent]);
 
-	const handleClick = () => {
+	useEffect(() => {
+		const src = encodeImageSrc(poster.image);
+		loader.load(
+			src,
+			(tex) => {
+				tex.colorSpace = THREE.SRGBColorSpace;
+				setTexture(tex);
+			},
+			undefined,
+			() => {
+				setTexture(null);
+			},
+		);
+	}, [poster.image]);
+
+	const handleClick = useCallback(() => {
 		onClick(poster.id);
-	};
-
-	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === "Enter" || e.key === " ") {
-			e.preventDefault();
-			onClick(poster.id);
-		}
-	};
+	}, [poster.id, onClick]);
 
 	return (
 		<group position={position} rotation={[0, angle, 0]}>
-		<Html
-			transform
-			distanceFactor={6}
-			style={{
-				pointerEvents: "auto",
-				width: "140px",
-			}}
-		>
-			<div
-				role="button"
-				tabIndex={0}
-				onClick={handleClick}
-				onKeyDown={handleKeyDown}
-				style={{
-					cursor: "pointer",
-					background: "var(--card)",
-					color: "var(--card-foreground)",
-					borderRadius: "8px",
-					overflow: "hidden",
-					boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-					userSelect: "none",
-				}}
-			>
-				<div
-					style={{
-						aspectRatio: "3/4",
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "center",
-						background: "var(--muted)",
-					}}
-				>
-					<img
-						src={poster.image}
-						alt={poster.title}
-						style={{
-							width: "100%",
-							height: "100%",
-							objectFit: "cover",
-						}}
-					/>
-				</div>
-				<div style={{ padding: "6px 8px" }}>
-					<h3
-						style={{
-							fontWeight: 600,
-							fontSize: "11px",
-							lineHeight: "1.3",
-							margin: 0,
-							overflow: "hidden",
-							textOverflow: "ellipsis",
-							whiteSpace: "nowrap",
-						}}
-					>
-						{poster.title}
-					</h3>
-				</div>
-			</div>
-		</Html>
+			{/* Card background */}
+			<mesh onClick={handleClick}>
+				<planeGeometry args={[CARD_WIDTH, CARD_HEIGHT]} />
+				<meshStandardMaterial color="#1a1a2e" />
+			</mesh>
+
+			{/* Poster image */}
+			<mesh position={[0, 0.15, 0.01]} onClick={handleClick}>
+				<planeGeometry args={[CARD_WIDTH - 0.2, CARD_HEIGHT - 0.6]} />
+				{texture ? (
+					<meshStandardMaterial map={texture} toneMapped={false} />
+				) : (
+					<meshStandardMaterial color="#2a2a4a" />
+				)}
+			</mesh>
 		</group>
 	);
 }
