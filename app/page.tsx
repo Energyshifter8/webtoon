@@ -2,49 +2,47 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthModal } from "@/components/auth-modal";
 import { MembershipModal } from "@/components/membership-modal";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
-
-interface Comic {
-	id: string;
-	title: string;
-	cover: string;
-	author: string;
-}
-
-const MOCK_COMICS: Comic[] = [
-	{ id: "1", title: "The Lone Warrior", cover: "/file.svg", author: "Artist A" },
-	{ id: "2", title: "City of Dreams", cover: "/globe.svg", author: "Artist B" },
-	{ id: "3", title: "Starlight Saga", cover: "/window.svg", author: "Artist C" },
-	{ id: "4", title: "Shadow Realm", cover: "/vercel.svg", author: "Artist D" },
-];
+import { getComics } from "@/lib/comics";
+import type { Comic } from "@/types/comic";
 
 export default function Home() {
-	const { currentUser, membershipStatus, loading } = useAuth();
+	const { currentUser, membershipStatus, loading: authLoading } = useAuth();
+	const [comics, setComics] = useState<Comic[]>([]);
+	const [loading, setLoading] = useState(true);
 	const [authModalOpen, setAuthModalOpen] = useState(false);
 	const [membershipModalOpen, setMembershipModalOpen] = useState(false);
-	const [, setPendingComic] = useState<Comic | null>(null);
+	const [, setPendingComicId] = useState<string | null>(null);
 
-	const handleComicClick = (comic: Comic) => {
-		if (loading) return;
+	useEffect(() => {
+		getComics()
+			.then(setComics)
+			.catch(() => {})
+			.finally(() => setLoading(false));
+	}, []);
+
+	const handleComicClick = (comicId: string) => {
+		if (authLoading) return;
 
 		if (!currentUser) {
-			setPendingComic(comic);
+			setPendingComicId(comicId);
 			setAuthModalOpen(true);
 			return;
 		}
 
 		if (membershipStatus === "none") {
-			setPendingComic(comic);
+			setPendingComicId(comicId);
 			setMembershipModalOpen(true);
 			return;
 		}
 
-		// TODO: navigate to comic reader
+		window.location.href = `/comic/${comicId}`;
 	};
 
 	return (
@@ -86,30 +84,48 @@ export default function Home() {
 					</p>
 				</section>
 
-				<section className="grid w-full max-w-5xl grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
-					{MOCK_COMICS.map((comic) => (
-						<button
-							key={comic.id}
-							type="button"
-							onClick={() => handleComicClick(comic)}
-							className="group flex flex-col overflow-hidden rounded-xl border bg-card text-left shadow-sm transition-all hover:shadow-md"
-						>
-							<div className="flex aspect-[3/4] items-center justify-center bg-muted p-6">
-								<Image
-									src={comic.cover}
-									alt={comic.title}
-									width={200}
-									height={267}
-									className="h-full w-full object-contain opacity-70 transition-opacity group-hover:opacity-100"
-								/>
-							</div>
-							<div className="flex flex-col gap-1 p-4">
-								<h3 className="font-semibold leading-tight">{comic.title}</h3>
-								<p className="text-sm text-muted-foreground">{comic.author}</p>
-							</div>
-						</button>
-					))}
-				</section>
+				{loading ? (
+					<div className="flex items-center justify-center py-20">
+						<p className="text-muted-foreground">Loading comics...</p>
+					</div>
+				) : comics.length === 0 ? (
+					<div className="flex flex-col items-center gap-4 py-20 text-center">
+						<p className="text-lg text-muted-foreground">No comics yet.</p>
+						<p className="text-sm text-muted-foreground">
+							Add comics to the <code>comics</code> collection in Firestore to see them here.
+						</p>
+					</div>
+				) : (
+					<section className="grid w-full max-w-5xl grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+						{comics.map((comic) => (
+							<button
+								key={comic.id}
+								type="button"
+								onClick={() => handleComicClick(comic.id)}
+								className="group text-left"
+							>
+								<Card className="overflow-hidden transition-all hover:shadow-md">
+									<div className="flex aspect-[3/4] items-center justify-center bg-muted p-6">
+										<Image
+											src={comic.cover}
+											alt={comic.title}
+											width={200}
+											height={267}
+											className="h-full w-full object-contain opacity-70 transition-opacity group-hover:opacity-100"
+										/>
+									</div>
+									<CardContent className="flex flex-col gap-1 p-4">
+										<h3 className="font-semibold leading-tight">{comic.title}</h3>
+										<p className="text-sm text-muted-foreground">{comic.author}</p>
+										<p className="text-xs text-muted-foreground">
+											{comic.episodeCount} {comic.episodeCount === 1 ? "episode" : "episodes"}
+										</p>
+									</CardContent>
+								</Card>
+							</button>
+						))}
+					</section>
+				)}
 			</main>
 
 			<AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
