@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AuthModal } from "@/components/auth-modal";
+import { BookmarkButton } from "@/components/bookmark-button";
 import { MembershipModal } from "@/components/membership-modal";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { getComicById } from "@/lib/comics";
@@ -22,6 +22,7 @@ interface ComicData {
 	episodeCount: number;
 	accessLevel: "free" | "premium";
 	genres: string[];
+	rating?: number;
 	[key: string]: unknown;
 }
 
@@ -93,42 +94,7 @@ export default function ComicPage() {
 
 	return (
 		<div className="min-h-screen bg-background">
-			<header className="glass sticky top-0 z-50 border-b border-border/50">
-				<div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-					<button
-						type="button"
-						onClick={() => router.push("/")}
-						className="text-xl font-bold gradient-text"
-					>
-						Webtoon A+
-					</button>
-					<div className="flex items-center gap-4">
-						<ThemeToggle />
-						{currentUser ? (
-							<Button variant="ghost" size="sm">
-								{currentUser.displayName || currentUser.email}
-							</Button>
-						) : (
-							<div className="flex gap-2">
-								<Link
-									href="/login"
-									className="inline-flex h-9 items-center rounded-xl px-4 text-sm font-medium transition-colors hover:bg-muted"
-								>
-									Log in
-								</Link>
-								<Link
-									href="/signup"
-									className="inline-flex h-9 items-center rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25"
-								>
-									Sign up
-								</Link>
-							</div>
-						)}
-					</div>
-				</div>
-			</header>
-
-			<main className="mx-auto max-w-4xl px-6 py-10">
+			<main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
 				<div className="animate-slide-up overflow-hidden rounded-2xl border border-border/50 bg-card shadow-xl">
 					<div className="relative aspect-[21/9] overflow-hidden">
 						<Image
@@ -140,10 +106,10 @@ export default function ComicPage() {
 							priority
 						/>
 						<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-						<div className="absolute bottom-0 left-0 right-0 p-8">
-							<div className="flex items-end justify-between gap-6">
+						<div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+							<div className="flex items-end justify-between gap-4">
 								<div>
-									<div className="mb-3 flex items-center gap-2">
+									<div className="mb-3 flex flex-wrap items-center gap-2">
 										<span className="rounded-full bg-primary/90 px-3 py-1 text-xs font-medium text-primary-foreground backdrop-blur-sm">
 											{comic.accessLevel === "free" ? "Free" : "Premium"}
 										</span>
@@ -152,22 +118,43 @@ export default function ComicPage() {
 												{comic.episodeCount} {comic.episodeCount === 1 ? "Episode" : "Episodes"}
 											</span>
 										)}
+										{typeof comic.rating === "number" && comic.rating > 0 && (
+											<span className="rounded-full bg-amber-500/90 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+												⭐ {comic.rating.toFixed(1)} / 10
+											</span>
+										)}
 									</div>
 									<h1 className="text-3xl font-bold text-white drop-shadow-lg md:text-4xl">
 										{comic.title}
 									</h1>
 									<p className="mt-2 text-sm text-white/80">by {comic.author}</p>
 								</div>
+								<div className="shrink-0">
+									<BookmarkButton comic={comic as never} />
+								</div>
 							</div>
 						</div>
 					</div>
 
-					<div className="p-8">
+					<div className="p-6 md:p-8">
+						{comic.genres && comic.genres.length > 0 && (
+							<div className="mb-4 flex flex-wrap gap-2">
+								{comic.genres.map((genre) => (
+									<Link
+										key={genre}
+										href={`/browse?genres=${genre}`}
+										className="rounded-full border border-border/50 bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground"
+									>
+										{genre}
+									</Link>
+								))}
+							</div>
+						)}
 						<p className="text-muted-foreground leading-relaxed">{comic.description}</p>
 					</div>
 				</div>
 
-				<div className="mt-10">
+				<div className="mt-8">
 					{hasAccess ? (
 						<div className="animate-slide-up space-y-6">
 							{comic.pdfUrl && (
@@ -189,7 +176,7 @@ export default function ComicPage() {
 							)}
 
 							{showPdf && comic.pdfUrl && (
-								<div className="rounded-2xl border border-border/50 bg-card shadow-lg overflow-hidden">
+								<div className="overflow-hidden rounded-2xl border border-border/50 bg-card shadow-lg">
 									<div className="flex items-center justify-between border-b border-border/50 bg-muted/50 px-4 py-3">
 										<Button
 											size="sm"

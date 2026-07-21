@@ -7,6 +7,8 @@ import {
 	query,
 	where,
 	limit as firestoreLimit,
+	startAfter,
+	type DocumentSnapshot,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Comic } from "@/types/comic";
@@ -106,4 +108,48 @@ export async function searchComics(
 			c.author.toLowerCase().includes(lower) ||
 			c.genres?.some((g) => g.toLowerCase().includes(lower)),
 	);
+}
+
+const PAGE_SIZE = 12;
+
+export async function getComicsPage(
+	sortBy: "newest" | "rating" | "views" = "newest",
+	genres?: string[],
+	lastDoc?: DocumentSnapshot,
+): Promise<{ comics: Comic[]; lastDoc: DocumentSnapshot | null }> {
+	const sortField =
+		sortBy === "rating"
+			? "rating"
+			: sortBy === "views"
+				? "viewsAllTime"
+				: "createdAt";
+
+	let q;
+	if (genres && genres.length > 0) {
+		q = query(
+			collection(db, COMICS_COLLECTION),
+			where("genres", "array-contains-any", genres),
+			orderBy(sortField, "desc"),
+			firestoreLimit(PAGE_SIZE),
+		);
+	} else {
+		q = query(
+			collection(db, COMICS_COLLECTION),
+			orderBy(sortField, "desc"),
+			firestoreLimit(PAGE_SIZE),
+		);
+	}
+
+	if (lastDoc) {
+		q = query(q, startAfter(lastDoc));
+	}
+
+	const snapshot = await getDocs(q);
+	const comics = snapshot.docs.map((docSnap) => ({
+		id: docSnap.id,
+		...docSnap.data(),
+	})) as Comic[];
+
+	const newLastDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
+	return { comics, lastDoc: newLastDoc };
 }

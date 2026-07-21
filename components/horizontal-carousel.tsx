@@ -2,16 +2,16 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Poster } from "@/lib/posters";
+import type { Comic } from "@/types/comic";
 
 const ARC_SPREAD = 28;
 
-export function HorizontalCarousel({ posters }: { posters: Poster[] }) {
+export function HorizontalCarousel({ comics }: { comics: Comic[] }) {
 	const [active, setActive] = useState(0);
 	const touchX = useRef(0);
 	const scrollAccum = useRef(0);
 	const rafId = useRef(0);
-	const count = posters.length;
+	const count = comics.length;
 
 	useEffect(() => {
 		const el = document.querySelector("[data-carousel]") as HTMLElement | null;
@@ -62,6 +62,8 @@ export function HorizontalCarousel({ posters }: { posters: Poster[] }) {
 	const prev = useCallback(() => setActive((p) => (p - 1 + count) % count), [count]);
 	const next = useCallback(() => setActive((p) => (p + 1) % count), [count]);
 
+	if (count === 0) return null;
+
 	return (
 		<div
 			data-carousel
@@ -76,7 +78,7 @@ export function HorizontalCarousel({ posters }: { posters: Poster[] }) {
 				perspective: 1200,
 			}}
 		>
-			{posters.map((poster, i) => {
+			{comics.map((comic, i) => {
 				const offset = ((i - active + count + count / 2) % count) - count / 2;
 				const absOffset = Math.abs(offset);
 				const translateX = offset * ARC_SPREAD;
@@ -87,19 +89,20 @@ export function HorizontalCarousel({ posters }: { posters: Poster[] }) {
 				const blur = absOffset > 1 ? absOffset * 1.5 : 0;
 				const zIndex = count - absOffset;
 				const isCenter = offset === 0;
+				const imgSrc = comic.posterUrl || comic.cover;
 
 				return (
 					<button
-						key={poster.id}
+						key={comic.id}
 						type="button"
 						onClick={() => {
 							if (isCenter) {
-								window.location.href = `/comic/${poster.id}`;
+								window.location.href = `/comic/${comic.id}`;
 							} else {
 								setActive(i);
 							}
 						}}
-						aria-label={poster.title}
+						aria-label={comic.title}
 						style={{
 							position: "absolute",
 							width: "min(260px, 38vw)",
@@ -123,8 +126,8 @@ export function HorizontalCarousel({ posters }: { posters: Poster[] }) {
 						}}
 					>
 						<Image
-							src={poster.image}
-							alt={poster.title}
+							src={imgSrc}
+							alt={comic.title}
 							fill
 							sizes="min(260px, 38vw)"
 							draggable={false}
@@ -150,7 +153,7 @@ export function HorizontalCarousel({ posters }: { posters: Poster[] }) {
 									textShadow: "0 1px 8px rgba(0,0,0,0.7)",
 								}}
 							>
-								{poster.title}
+								{comic.title}
 							</div>
 						</div>
 						{isCenter && (
@@ -176,11 +179,10 @@ export function HorizontalCarousel({ posters }: { posters: Poster[] }) {
 				);
 			})}
 
-			{/* Nav arrows */}
 			<button
 				type="button"
 				onClick={prev}
-				aria-label="Previous poster"
+				aria-label="Previous"
 				style={{
 					position: "absolute",
 					left: "max(16px, 3vw)",
@@ -207,7 +209,7 @@ export function HorizontalCarousel({ posters }: { posters: Poster[] }) {
 			<button
 				type="button"
 				onClick={next}
-				aria-label="Next poster"
+				aria-label="Next"
 				style={{
 					position: "absolute",
 					right: "max(16px, 3vw)",

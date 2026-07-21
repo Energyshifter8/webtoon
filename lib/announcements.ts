@@ -1,5 +1,6 @@
 import {
 	collection,
+	deleteDoc,
 	doc,
 	getDoc,
 	getDocs,
@@ -7,39 +8,64 @@ import {
 	query,
 	serverTimestamp,
 	setDoc,
-	deleteDoc,
+	updateDoc,
+	limit,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { Announcement } from "@/types/announcement";
+
+export interface Announcement {
+	id: string;
+	title: string;
+	body: string;
+	publishedAt: Date | null;
+}
 
 const ANNOUNCEMENTS_COLLECTION = "announcements";
 
-export async function getAnnouncements(): Promise<Announcement[]> {
+export async function getAnnouncements(count = 20): Promise<Announcement[]> {
 	const q = query(
 		collection(db, ANNOUNCEMENTS_COLLECTION),
-		orderBy("createdAt", "desc"),
+		orderBy("publishedAt", "desc"),
+		limit(count),
 	);
-	const snapshot = await getDocs(q);
-	return snapshot.docs.map((docSnap) => ({
-		id: docSnap.id,
-		...docSnap.data(),
-		createdAt:
-			docSnap.data().createdAt?.toDate?.()?.toISOString() ??
-			new Date().toISOString(),
+	const snap = await getDocs(q);
+	return snap.docs.map((d) => ({
+		id: d.id,
+		...d.data(),
+		publishedAt: d.data().publishedAt?.toDate?.() ?? null,
 	})) as Announcement[];
 }
 
-export async function createAnnouncement(data: {
-	title: string;
-	content: string;
-	author: string;
-}): Promise<string> {
-	const docRef = doc(collection(db, ANNOUNCEMENTS_COLLECTION));
-	await setDoc(docRef, {
+export async function getAnnouncementById(id: string): Promise<Announcement | null> {
+	const snap = await getDoc(doc(db, ANNOUNCEMENTS_COLLECTION, id));
+	if (!snap.exists()) return null;
+	const data = snap.data();
+	return {
+		id: snap.id,
 		...data,
-		createdAt: serverTimestamp(),
+		publishedAt: data.publishedAt?.toDate?.() ?? null,
+	} as Announcement;
+}
+
+export async function createAnnouncement(
+	title: string,
+	body: string,
+): Promise<string> {
+	const ref = doc(collection(db, ANNOUNCEMENTS_COLLECTION));
+	await setDoc(ref, {
+		title,
+		body,
+		publishedAt: serverTimestamp(),
 	});
-	return docRef.id;
+	return ref.id;
+}
+
+export async function updateAnnouncement(
+	id: string,
+	title: string,
+	body: string,
+): Promise<void> {
+	await updateDoc(doc(db, ANNOUNCEMENTS_COLLECTION, id), { title, body });
 }
 
 export async function deleteAnnouncement(id: string): Promise<void> {
