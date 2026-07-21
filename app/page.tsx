@@ -10,8 +10,9 @@ import { MobileFallback } from "@/components/mobile-fallback";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { POSTERS } from "@/lib/posters";
-import { getTrendingComics, getPopularComics, getFeaturedComic } from "@/lib/comics";
+import { getTrendingComics, getPopularComics, getFeaturedComic, getComics } from "@/lib/comics";
 import { getAnnouncements, type Announcement } from "@/lib/announcements";
+import { getPosterUrl } from "@/lib/get-poster";
 import type { Comic } from "@/types/comic";
 
 function useIsMobile(breakpoint = 768): boolean {
@@ -33,7 +34,7 @@ function TrendingSection({ comics }: { comics: Comic[] }) {
 				<h2 className="text-xl font-bold">🔥 Trending</h2>
 				<Link href="/browse" className="text-sm text-primary hover:underline">View all</Link>
 			</div>
-			<HorizontalCarousel comics={comics} />
+			<HorizontalCarousel comics={comics} fixed={false} />
 		</section>
 	);
 }
@@ -43,7 +44,18 @@ function PopularSection() {
 	const [comics, setComics] = useState<Comic[]>([]);
 
 	useEffect(() => {
-		getPopularComics(period, 10).then(setComics);
+		getPopularComics(period, 10).then((res) => {
+			if (res && res.length > 0) {
+				setComics(res);
+				return;
+			}
+			// fallback: fetch all comics and sort client-side
+			getComics().then((all) => {
+				const field = period === "weekly" ? "viewsWeekly" : period === "monthly" ? "viewsMonthly" : "viewsAllTime";
+				const sorted = all.slice().sort((a: any, b: any) => (b[field] || 0) - (a[field] || 0));
+				setComics(sorted.slice(0, 10));
+			});
+		});
 	}, [period]);
 
 	const tabs = [
@@ -84,7 +96,7 @@ function PopularSection() {
 							{i + 1}
 						</div>
 						<div className="relative h-14 w-10 shrink-0 overflow-hidden rounded-lg">
-							<Image src={comic.posterUrl || comic.cover} alt={comic.title} fill className="object-cover" />
+							<Image src={getPosterUrl(comic)} alt={comic.title} fill className="object-cover" />
 						</div>
 						<div className="min-w-0 flex-1">
 							<p className="truncate text-sm font-semibold">{comic.title}</p>
@@ -114,7 +126,7 @@ function EditorsPickSection({ comic }: { comic: Comic | null }) {
 			<Link href={`/comic/${comic.id}`} className="group block px-4 sm:px-0">
 				<div className="relative overflow-hidden rounded-2xl border border-border/50 bg-card shadow-lg">
 					<div className="relative aspect-[3/1] overflow-hidden">
-						<Image src={comic.posterUrl || comic.cover} alt={comic.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+						<Image src={getPosterUrl(comic)} alt={comic.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
 						<div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
 						<div className="absolute bottom-0 left-0 p-6 md:p-10">
 							<div className="mb-2 flex items-center gap-2">
@@ -167,7 +179,15 @@ export default function Home() {
 	const [announcements, setAnnouncements] = useState<Announcement[]>([]);
 
 	useEffect(() => {
-		getTrendingComics(10).then(setTrending);
+		getTrendingComics(10).then((res) => {
+			if (res && res.length > 0) {
+				setTrending(res);
+				return;
+			}
+			// fallback: return any comics if ordered query yields none
+			getComics().then((all) => setTrending(all.slice(0, 10)));
+		});
+
 		getFeaturedComic().then(setFeatured);
 		getAnnouncements(3).then(setAnnouncements);
 	}, []);

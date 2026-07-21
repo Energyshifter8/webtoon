@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { getBookmarks } from "@/lib/bookmarks";
 import { Button } from "@/components/ui/button";
+import { getPosterUrl } from "@/lib/get-poster";
 import type { Comic } from "@/types/comic";
 
 export default function BookmarksPage() {
@@ -69,7 +70,7 @@ export default function BookmarksPage() {
 						>
 							<div className="relative aspect-[3/4] overflow-hidden">
 								<Image
-									src={comic.posterUrl || comic.cover}
+									src={getPosterUrl(comic)}
 									alt={comic.title}
 									fill
 									className="object-cover transition-transform duration-300 group-hover:scale-105"

@@ -7,6 +7,7 @@ import {
 	setDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { getPosterUrl } from "@/lib/get-poster";
 import type { Comic } from "@/types/comic";
 
 export async function getBookmarks(uid: string): Promise<Comic[]> {
@@ -35,8 +36,7 @@ export async function toggleBookmark(
 	await setDoc(ref, {
 		id: comic.id,
 		title: comic.title,
-		cover: comic.cover,
-		posterUrl: comic.posterUrl,
+		posterUrl: getPosterUrl(comic),
 		genres: comic.genres,
 		rating: comic.rating,
 		author: comic.author,

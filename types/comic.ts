@@ -2,7 +2,8 @@ export interface Comic {
 	id: string;
 	title: string;
 	description: string;
-	cover: string;
+	/** Canonical poster image URL used across the app */
+	posterUrl: string;
 	author: string;
 	episodeCount: number;
 	accessLevel: "free" | "premium";

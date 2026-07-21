@@ -10,12 +10,12 @@ import { MembershipModal } from "@/components/membership-modal";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { getComicById } from "@/lib/comics";
+import { getPosterUrl } from "@/lib/get-poster";
 
 interface ComicData {
 	id: string;
 	title: string;
 	description: string;
-	cover: string;
 	posterUrl?: string;
 	pdfUrl?: string;
 	author: string;
@@ -62,7 +62,7 @@ export default function ComicPage() {
 		}
 	}, [loading, authLoading, showAuthPrompt, showMembershipPrompt]);
 
-	const coverImage = comic?.posterUrl || comic?.cover || "";
+	const coverImage = getPosterUrl(comic ?? {});
 
 	if (loading) {
 		return (

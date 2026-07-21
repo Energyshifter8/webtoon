@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { getComicsPage } from "@/lib/comics";
 import { ALL_GENRES } from "@/types/comic";
 import type { Comic } from "@/types/comic";
+import { getPosterUrl } from "@/lib/get-poster";
 import type { DocumentSnapshot } from "firebase/firestore";
 
 function BrowseContent() {
@@ -152,7 +153,7 @@ function BrowseContent() {
 									>
 										<div className="relative aspect-[3/4] overflow-hidden">
 											<Image
-												src={comic.posterUrl || comic.cover}
+												src={getPosterUrl(comic)}
 												alt={comic.title}
 												fill
 												className="object-cover transition-transform duration-300 group-hover:scale-105"

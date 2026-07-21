@@ -238,7 +238,7 @@ export default function AdminUploadPage() {
 				isPaid,
 				posterUrl: poster.url,
 				pdfUrl: pdf.url,
-				cover: poster.url,
+
 				author: currentUser!.displayName || currentUser!.email || "Unknown",
 				episodeCount: 1,
 				accessLevel: isPaid ? "premium" : "free",
