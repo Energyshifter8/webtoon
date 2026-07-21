@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -24,12 +24,12 @@ import { auth, db } from "@/lib/firebase";
 const signupSchema = z
 	.object({
 		displayName: z.string().min(2, "Name must be at least 2 characters"),
-		email: z.email("Please enter a valid email address"),
+		email: z.string().email("Please enter a valid email address"),
 		password: z.string().min(6, "Password must be at least 6 characters"),
 		confirmPassword: z.string(),
 	})
-	.check((val) => val.password === val.confirmPassword, {
-		error: "Passwords do not match",
+	.refine((val) => val.password === val.confirmPassword, {
+		message: "Passwords do not match",
 		path: ["confirmPassword"],
 	});
 

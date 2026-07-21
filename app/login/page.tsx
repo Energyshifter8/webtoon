@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { auth } from "@/lib/firebase";
 
 const loginSchema = z.object({
-	email: z.email("Please enter a valid email address"),
+	email: z.string().email("Please enter a valid email address"),
 	password: z.string().min(1, "Password is required"),
 });
 

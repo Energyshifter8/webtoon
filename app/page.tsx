@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { AuthModal } from "@/components/auth-modal";
@@ -26,7 +27,7 @@ export default function Home() {
 	const { currentUser, membershipStatus, loading } = useAuth();
 	const [authModalOpen, setAuthModalOpen] = useState(false);
 	const [membershipModalOpen, setMembershipModalOpen] = useState(false);
-	const [pendingComic, setPendingComic] = useState<Comic | null>(null);
+	const [, setPendingComic] = useState<Comic | null>(null);
 
 	const handleComicClick = (comic: Comic) => {
 		if (loading) return;
@@ -58,12 +59,18 @@ export default function Home() {
 						</Button>
 					) : (
 						<div className="flex gap-2">
-							<Button variant="ghost" size="sm" asChild>
-								<Link href="/login">Log in</Link>
-							</Button>
-							<Button size="sm" asChild>
-								<Link href="/signup">Sign up</Link>
-							</Button>
+							<Link
+								href="/login"
+								className="inline-flex h-7 items-center gap-1 rounded-lg px-2.5 text-sm font-medium hover:bg-muted hover:text-foreground"
+							>
+								Log in
+							</Link>
+							<Link
+								href="/signup"
+								className="inline-flex h-7 items-center gap-1.5 rounded-lg bg-primary px-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/80"
+							>
+								Sign up
+							</Link>
 						</div>
 					)}
 				</div>
@@ -88,9 +95,11 @@ export default function Home() {
 							className="group flex flex-col overflow-hidden rounded-xl border bg-card text-left shadow-sm transition-all hover:shadow-md"
 						>
 							<div className="flex aspect-[3/4] items-center justify-center bg-muted p-6">
-								<img
+								<Image
 									src={comic.cover}
 									alt={comic.title}
+									width={200}
+									height={267}
 									className="h-full w-full object-contain opacity-70 transition-opacity group-hover:opacity-100"
 								/>
 							</div>
