@@ -1,16 +1,35 @@
 "use client";
 
-import Image from "next/image";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { AuthModal } from "@/components/auth-modal";
 import { MembershipModal } from "@/components/membership-modal";
+import { MobileFallback } from "@/components/mobile-fallback";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
+import { useLenis } from "@/hooks/use-lenis";
 import { getComics } from "@/lib/comics";
 import type { Comic } from "@/types/comic";
+
+const WorldCanvas = dynamic(
+	() => import("@/components/world-canvas").then((mod) => mod.WorldCanvas),
+	{ ssr: false },
+);
+
+function useIsMobile(breakpoint = 768): boolean {
+	const [isMobile, setIsMobile] = useState(false);
+
+	useEffect(() => {
+		const check = () => setIsMobile(window.innerWidth < breakpoint);
+		check();
+		window.addEventListener("resize", check);
+		return () => window.removeEventListener("resize", check);
+	}, [breakpoint]);
+
+	return isMobile;
+}
 
 export default function Home() {
 	const { currentUser, membershipStatus, loading: authLoading } = useAuth();
@@ -19,6 +38,9 @@ export default function Home() {
 	const [authModalOpen, setAuthModalOpen] = useState(false);
 	const [membershipModalOpen, setMembershipModalOpen] = useState(false);
 	const [, setPendingComicId] = useState<string | null>(null);
+	const isMobile = useIsMobile();
+
+	useLenis();
 
 	useEffect(() => {
 		getComics()
@@ -27,27 +49,38 @@ export default function Home() {
 			.finally(() => setLoading(false));
 	}, []);
 
-	const handleComicClick = (comicId: string) => {
-		if (authLoading) return;
+	const handleComicClick = useCallback(
+		(comicId: string) => {
+			if (authLoading) return;
 
-		if (!currentUser) {
-			setPendingComicId(comicId);
-			setAuthModalOpen(true);
-			return;
-		}
+			if (!currentUser) {
+				setPendingComicId(comicId);
+				setAuthModalOpen(true);
+				return;
+			}
 
-		if (membershipStatus === "none") {
-			setPendingComicId(comicId);
-			setMembershipModalOpen(true);
-			return;
-		}
+			if (membershipStatus === "none") {
+				setPendingComicId(comicId);
+				setMembershipModalOpen(true);
+				return;
+			}
 
-		window.location.href = `/comic/${comicId}`;
-	};
+			window.location.href = `/comic/${comicId}`;
+		},
+		[currentUser, membershipStatus, authLoading],
+	);
 
 	return (
-		<div className="flex flex-1 flex-col bg-zinc-50 dark:bg-black">
-			<header className="flex items-center justify-between border-b px-6 py-4">
+		<div className="relative min-h-screen bg-zinc-50 dark:bg-black">
+			{/* 3D Canvas — fixed fullscreen behind everything */}
+			{!loading && comics.length > 0 && !isMobile && (
+				<Suspense fallback={null}>
+					<WorldCanvas comics={comics} onComicClick={handleComicClick} />
+				</Suspense>
+			)}
+
+			{/* Header — sits above Canvas */}
+			<header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between border-b bg-background/80 px-6 py-4 backdrop-blur-md">
 				<h1 className="text-xl font-bold">Webtoon</h1>
 				<div className="flex items-center gap-3">
 					<ThemeToggle />
@@ -74,60 +107,45 @@ export default function Home() {
 				</div>
 			</header>
 
-			<main className="flex flex-1 flex-col items-center px-6 py-10">
-				<section className="mb-12 text-center">
-					<h2 className="mb-2 text-3xl font-bold tracking-tight text-foreground">
-						Discover Comics
-					</h2>
-					<p className="text-muted-foreground">
-						Browse our collection — no account needed to explore.
-					</p>
-				</section>
+			{/* Scroll spacer — invisible, provides scroll height for Lenis + camera rig */}
+			{!loading && comics.length > 0 && !isMobile && (
+				<div style={{ height: `${comics.length * 120 + 200}vh` }} />
+			)}
 
-				{loading ? (
-					<div className="flex items-center justify-center py-20">
-						<p className="text-muted-foreground">Loading comics...</p>
-					</div>
-				) : comics.length === 0 ? (
-					<div className="flex flex-col items-center gap-4 py-20 text-center">
-						<p className="text-lg text-muted-foreground">No comics yet.</p>
-						<p className="text-sm text-muted-foreground">
-							Add comics to the <code>comics</code> collection in Firestore to see them here.
+			{/* Mobile fallback — simple vertical list with fade-on-scroll */}
+			{!loading && comics.length > 0 && isMobile && (
+				<main className="pt-20">
+					<div className="mb-8 text-center">
+						<h2 className="mb-2 text-3xl font-bold tracking-tight text-foreground">
+							Discover Comics
+						</h2>
+						<p className="text-muted-foreground">
+							Browse our collection — no account needed to explore.
 						</p>
 					</div>
-				) : (
-					<section className="grid w-full max-w-5xl grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
-						{comics.map((comic) => (
-							<button
-								key={comic.id}
-								type="button"
-								onClick={() => handleComicClick(comic.id)}
-								className="group text-left"
-							>
-								<Card className="overflow-hidden transition-all hover:shadow-md">
-									<div className="flex aspect-[3/4] items-center justify-center bg-muted p-6">
-										<Image
-											src={comic.cover}
-											alt={comic.title}
-											width={200}
-											height={267}
-											className="h-full w-full object-contain opacity-70 transition-opacity group-hover:opacity-100"
-										/>
-									</div>
-									<CardContent className="flex flex-col gap-1 p-4">
-										<h3 className="font-semibold leading-tight">{comic.title}</h3>
-										<p className="text-sm text-muted-foreground">{comic.author}</p>
-										<p className="text-xs text-muted-foreground">
-											{comic.episodeCount} {comic.episodeCount === 1 ? "episode" : "episodes"}
-										</p>
-									</CardContent>
-								</Card>
-							</button>
-						))}
-					</section>
-				)}
-			</main>
+					<MobileFallback comics={comics} onComicClick={handleComicClick} />
+				</main>
+			)}
 
+			{/* Loading state */}
+			{loading && (
+				<div className="flex flex-1 items-center justify-center pt-20">
+					<p className="text-muted-foreground">Loading comics...</p>
+				</div>
+			)}
+
+			{/* Empty state */}
+			{!loading && comics.length === 0 && (
+				<main className="flex flex-col items-center gap-4 pt-20 text-center">
+					<h2 className="text-3xl font-bold tracking-tight text-foreground">Discover Comics</h2>
+					<p className="text-lg text-muted-foreground">No comics yet.</p>
+					<p className="text-sm text-muted-foreground">
+						Add comics to the <code>comics</code> collection in Firestore to see them here.
+					</p>
+				</main>
+			)}
+
+			{/* Modals */}
 			<AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
 			<MembershipModal open={membershipModalOpen} onOpenChange={setMembershipModalOpen} />
 		</div>
