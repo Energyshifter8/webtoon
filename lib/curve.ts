@@ -3,13 +3,12 @@ import * as THREE from "three";
 export function createCurve(): THREE.CatmullRomCurve3 {
 	return new THREE.CatmullRomCurve3(
 		[
-			new THREE.Vector3(0, 0, 10),
-			new THREE.Vector3(4, 1, 6),
-			new THREE.Vector3(-3, -1, 2),
-			new THREE.Vector3(5, 0.5, -2),
-			new THREE.Vector3(-2, 1, -6),
-			new THREE.Vector3(3, -0.5, -10),
-			new THREE.Vector3(0, 0, -14),
+			new THREE.Vector3(0, 0, 8),
+			new THREE.Vector3(3, 0.5, 4),
+			new THREE.Vector3(-2, -0.3, 0),
+			new THREE.Vector3(2, 0.3, -4),
+			new THREE.Vector3(-1, 0, -8),
+			new THREE.Vector3(1, 0.2, -12),
 		],
 		false,
 		"catmullrom",

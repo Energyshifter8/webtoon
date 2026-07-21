@@ -1,85 +1,32 @@
 "use client";
 
 import { Html } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
-import { animate } from "animejs";
-import { useCallback, useMemo, useRef } from "react";
 import type * as THREE from "three";
-import { computeFalloffFromT, DEFAULT_FALLOFF_PARAMS } from "@/lib/falloff";
-import { useScrollStore } from "@/store/scroll";
-import type { Comic } from "@/types/comic";
+import type { Poster } from "@/lib/posters";
 
 interface PosterCard3DProps {
-	comic: Comic;
+	poster: Poster;
 	position: THREE.Vector3;
 	tangent: THREE.Vector3;
-	cardT: number;
-	onClick: (comicId: string) => void;
+	onClick: (posterId: string) => void;
 }
 
-export function PosterCard3D({ comic, position, tangent, cardT, onClick }: PosterCard3DProps) {
-	const groupRef = useRef<THREE.Group>(null);
-	const cardRef = useRef<HTMLDivElement>(null);
-	const progress = useScrollStore((s) => s.progress);
-	const emphasisRef = useRef(0);
+export function PosterCard3D({ poster, position, tangent, onClick }: PosterCard3DProps) {
+	const angle = Math.atan2(tangent.x, tangent.z);
 
-	const angle = useMemo(() => {
-		return Math.atan2(tangent.x, tangent.z);
-	}, [tangent]);
+	const handleClick = () => {
+		onClick(poster.id);
+	};
 
-	useFrame(() => {
-		if (!groupRef.current) return;
-
-		const { emphasis } = computeFalloffFromT(progress, cardT, DEFAULT_FALLOFF_PARAMS);
-
-		emphasisRef.current += (emphasis - emphasisRef.current) * 0.1;
-
-		const card = cardRef.current;
-		if (card) {
-			const blur = (1 - emphasisRef.current) * 4;
-			card.style.filter = `blur(${blur}px)`;
-			card.style.opacity = `${0.3 + emphasisRef.current * 0.7}`;
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (e.key === "Enter" || e.key === " ") {
+			e.preventDefault();
+			onClick(poster.id);
 		}
-	});
-
-	const handleMouseEnter = useCallback(() => {
-		if (cardRef.current) {
-			animate(cardRef.current, {
-				scale: 1.05,
-				duration: 200,
-				easing: "easeOutQuad",
-			});
-			cardRef.current.style.boxShadow = "0 0 20px rgba(128, 90, 213, 0.5)";
-		}
-	}, []);
-
-	const handleMouseLeave = useCallback(() => {
-		if (cardRef.current) {
-			animate(cardRef.current, {
-				scale: 1,
-				duration: 200,
-				easing: "easeOutQuad",
-			});
-			cardRef.current.style.boxShadow = "none";
-		}
-	}, []);
-
-	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent) => {
-			if (e.key === "Enter" || e.key === " ") {
-				e.preventDefault();
-				onClick(comic.id);
-			}
-		},
-		[comic.id, onClick],
-	);
-
-	const handleClick = useCallback(() => {
-		onClick(comic.id);
-	}, [comic.id, onClick]);
+	};
 
 	return (
-		<group ref={groupRef} position={position} rotation={[0, angle, 0]}>
+		<group position={position} rotation={[0, angle, 0]}>
 			<Html
 				transform
 				distanceFactor={8}
@@ -89,11 +36,8 @@ export function PosterCard3D({ comic, position, tangent, cardT, onClick }: Poste
 				}}
 			>
 				<div
-					ref={cardRef}
 					role="button"
 					tabIndex={0}
-					onMouseEnter={handleMouseEnter}
-					onMouseLeave={handleMouseLeave}
 					onClick={handleClick}
 					onKeyDown={handleKeyDown}
 					style={{
@@ -103,7 +47,6 @@ export function PosterCard3D({ comic, position, tangent, cardT, onClick }: Poste
 						borderRadius: "12px",
 						overflow: "hidden",
 						boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-						transition: "box-shadow 0.2s",
 						userSelect: "none",
 					}}
 				>
@@ -114,21 +57,19 @@ export function PosterCard3D({ comic, position, tangent, cardT, onClick }: Poste
 							alignItems: "center",
 							justifyContent: "center",
 							background: "var(--muted)",
-							padding: "24px",
 						}}
 					>
 						<img
-							src={comic.cover}
-							alt={comic.title}
+							src={poster.image}
+							alt={poster.title}
 							style={{
 								width: "100%",
 								height: "100%",
-								objectFit: "contain",
-								opacity: 0.8,
+								objectFit: "cover",
 							}}
 						/>
 					</div>
-					<div style={{ padding: "16px" }}>
+					<div style={{ padding: "12px 16px" }}>
 						<h3
 							style={{
 								fontWeight: 600,
@@ -137,17 +78,8 @@ export function PosterCard3D({ comic, position, tangent, cardT, onClick }: Poste
 								margin: 0,
 							}}
 						>
-							{comic.title}
+							{poster.title}
 						</h3>
-						<p
-							style={{
-								fontSize: "12px",
-								color: "var(--muted-foreground)",
-								margin: "4px 0 0",
-							}}
-						>
-							{comic.author}
-						</p>
 					</div>
 				</div>
 			</Html>

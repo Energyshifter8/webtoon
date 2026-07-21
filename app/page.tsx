@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useLenis } from "@/hooks/use-lenis";
 import { getComics } from "@/lib/comics";
+import { POSTERS } from "@/lib/posters";
 import type { Comic } from "@/types/comic";
 
 const WorldCanvas = dynamic(
@@ -37,7 +38,6 @@ export default function Home() {
 	const [loading, setLoading] = useState(true);
 	const [authModalOpen, setAuthModalOpen] = useState(false);
 	const [membershipModalOpen, setMembershipModalOpen] = useState(false);
-	const [, setPendingComicId] = useState<string | null>(null);
 	const isMobile = useIsMobile();
 
 	useLenis();
@@ -49,18 +49,35 @@ export default function Home() {
 			.finally(() => setLoading(false));
 	}, []);
 
-	const handleComicClick = useCallback(
-		(comicId: string) => {
+	const handlePosterClick = useCallback(
+		(posterId: string) => {
 			if (authLoading) return;
 
 			if (!currentUser) {
-				setPendingComicId(comicId);
 				setAuthModalOpen(true);
 				return;
 			}
 
 			if (membershipStatus === "none") {
-				setPendingComicId(comicId);
+				setMembershipModalOpen(true);
+				return;
+			}
+
+			window.location.href = `/comic/${posterId}`;
+		},
+		[currentUser, membershipStatus, authLoading],
+	);
+
+	const handleComicClick = useCallback(
+		(comicId: string) => {
+			if (authLoading) return;
+
+			if (!currentUser) {
+				setAuthModalOpen(true);
+				return;
+			}
+
+			if (membershipStatus === "none") {
 				setMembershipModalOpen(true);
 				return;
 			}
@@ -72,12 +89,15 @@ export default function Home() {
 
 	return (
 		<div className="relative min-h-screen bg-background">
-			{/* 3D Canvas — fixed fullscreen behind everything */}
-			{!loading && comics.length > 0 && !isMobile && (
+			{/* 3D Canvas — V0 with hardcoded posters */}
+			{!isMobile && (
 				<Suspense fallback={null}>
-					<WorldCanvas comics={comics} onComicClick={handleComicClick} />
+					<WorldCanvas />
 				</Suspense>
 			)}
+
+			{/* Scroll spacer for Lenis + camera rig */}
+			{!isMobile && <div style={{ height: `${POSTERS.length * 120 + 200}vh` }} />}
 
 			{/* Header — glass effect */}
 			<header className="glass fixed top-0 left-0 right-0 z-50 border-b border-border/40">
@@ -94,9 +114,7 @@ export default function Home() {
 									<div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
 										{(currentUser.displayName || currentUser.email || "U")[0].toUpperCase()}
 									</div>
-									<span className="hidden sm:inline">
-										{currentUser.displayName || currentUser.email}
-									</span>
+									<span className="hidden sm:inline">{currentUser.displayName || currentUser.email}</span>
 								</Button>
 							</Link>
 						) : (
@@ -107,10 +125,7 @@ export default function Home() {
 									</Button>
 								</Link>
 								<Link href="/signup">
-									<Button
-										size="sm"
-										className="rounded-xl px-4 font-medium transition-all hover:shadow-lg hover:shadow-primary/25"
-									>
+									<Button size="sm" className="rounded-xl px-4 font-medium transition-all hover:shadow-lg hover:shadow-primary/25">
 										Sign up
 									</Button>
 								</Link>
@@ -120,13 +135,8 @@ export default function Home() {
 				</div>
 			</header>
 
-			{/* Scroll spacer — invisible, provides scroll height for Lenis + camera rig */}
-			{!loading && comics.length > 0 && !isMobile && (
-				<div style={{ height: `${comics.length * 120 + 200}vh` }} />
-			)}
-
 			{/* Mobile fallback */}
-			{!loading && comics.length > 0 && isMobile && (
+			{isMobile && (
 				<main className="pt-20">
 					<div className="mb-8 px-6 text-center">
 						<h2 className="mb-2 text-3xl font-bold tracking-tight">
@@ -136,7 +146,9 @@ export default function Home() {
 							Browse our collection — no account needed to explore.
 						</p>
 					</div>
-					<MobileFallback comics={comics} onComicClick={handleComicClick} />
+					{!loading && comics.length > 0 && (
+						<MobileFallback comics={comics} onComicClick={handleComicClick} />
+					)}
 				</main>
 			)}
 
@@ -150,8 +162,8 @@ export default function Home() {
 				</div>
 			)}
 
-			{/* Empty state */}
-			{!loading && comics.length === 0 && (
+			{/* Empty state (desktop 3D still shows even if no comics) */}
+			{!loading && comics.length === 0 && isMobile && (
 				<main className="flex flex-col items-center justify-center gap-6 pt-32 text-center px-6">
 					<div className="text-6xl">📚</div>
 					<div>
@@ -160,9 +172,7 @@ export default function Home() {
 						</h2>
 						<p className="mt-3 text-lg text-muted-foreground">No comics yet.</p>
 						<p className="mt-1 text-sm text-muted-foreground">
-							Add comics to the{" "}
-							<code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">comics</code>{" "}
-							collection in Firestore.
+							Add comics to the <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">comics</code> collection in Firestore.
 						</p>
 					</div>
 				</main>
