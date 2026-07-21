@@ -27,62 +27,65 @@ export function PosterCard3D({ poster, position, tangent, onClick }: PosterCard3
 
 	return (
 		<group position={position} rotation={[0, angle, 0]}>
-			<Html
-				transform
-				distanceFactor={8}
+		<Html
+			transform
+			distanceFactor={6}
+			style={{
+				pointerEvents: "auto",
+				width: "140px",
+			}}
+		>
+			<div
+				role="button"
+				tabIndex={0}
+				onClick={handleClick}
+				onKeyDown={handleKeyDown}
 				style={{
-					pointerEvents: "auto",
-					width: "220px",
+					cursor: "pointer",
+					background: "var(--card)",
+					color: "var(--card-foreground)",
+					borderRadius: "8px",
+					overflow: "hidden",
+					boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+					userSelect: "none",
 				}}
 			>
 				<div
-					role="button"
-					tabIndex={0}
-					onClick={handleClick}
-					onKeyDown={handleKeyDown}
 					style={{
-						cursor: "pointer",
-						background: "var(--card)",
-						color: "var(--card-foreground)",
-						borderRadius: "12px",
-						overflow: "hidden",
-						boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-						userSelect: "none",
+						aspectRatio: "3/4",
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "center",
+						background: "var(--muted)",
 					}}
 				>
-					<div
+					<img
+						src={poster.image}
+						alt={poster.title}
 						style={{
-							aspectRatio: "3/4",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							background: "var(--muted)",
+							width: "100%",
+							height: "100%",
+							objectFit: "cover",
+						}}
+					/>
+				</div>
+				<div style={{ padding: "6px 8px" }}>
+					<h3
+						style={{
+							fontWeight: 600,
+							fontSize: "11px",
+							lineHeight: "1.3",
+							margin: 0,
+							overflow: "hidden",
+							textOverflow: "ellipsis",
+							whiteSpace: "nowrap",
 						}}
 					>
-						<img
-							src={poster.image}
-							alt={poster.title}
-							style={{
-								width: "100%",
-								height: "100%",
-								objectFit: "cover",
-							}}
-						/>
-					</div>
-					<div style={{ padding: "12px 16px" }}>
-						<h3
-							style={{
-								fontWeight: 600,
-								fontSize: "14px",
-								lineHeight: "1.3",
-								margin: 0,
-							}}
-						>
-							{poster.title}
-						</h3>
-					</div>
+						{poster.title}
+					</h3>
 				</div>
-			</Html>
+			</div>
+		</Html>
 		</group>
 	);
 }
