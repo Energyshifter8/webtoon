@@ -1,21 +1,15 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AuthModal } from "@/components/auth-modal";
+import { HorizontalCarousel } from "@/components/horizontal-carousel";
 import { MembershipModal } from "@/components/membership-modal";
 import { MobileFallback } from "@/components/mobile-fallback";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { useLenis } from "@/hooks/use-lenis";
 import { POSTERS } from "@/lib/posters";
-
-const WorldCanvas = dynamic(
-	() => import("@/components/world-canvas").then((mod) => mod.WorldCanvas),
-	{ ssr: false },
-);
 
 function useIsMobile(breakpoint = 768): boolean {
 	const [isMobile, setIsMobile] = useState(false);
@@ -35,8 +29,6 @@ export default function Home() {
 	const [authModalOpen, setAuthModalOpen] = useState(false);
 	const [membershipModalOpen, setMembershipModalOpen] = useState(false);
 	const isMobile = useIsMobile();
-
-	useLenis();
 
 	const handlePosterClick = useCallback(
 		(posterId: string) => {
@@ -59,15 +51,8 @@ export default function Home() {
 
 	return (
 		<div className="relative min-h-screen bg-background">
-			{/* 3D Canvas — V0 with hardcoded posters */}
-			{!isMobile && (
-				<Suspense fallback={null}>
-					<WorldCanvas />
-				</Suspense>
-			)}
-
-			{/* Scroll spacer for Lenis + camera rig */}
-			{!isMobile && <div style={{ height: `${POSTERS.length * 120 + 200}vh` }} />}
+			{/* Desktop: 3D Carousel */}
+			{!isMobile && <HorizontalCarousel posters={POSTERS} />}
 
 			{/* Header — glass effect */}
 			<header className="glass fixed top-0 left-0 right-0 z-50 border-b border-border/40">
