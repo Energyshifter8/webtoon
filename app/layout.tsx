@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "Webtoon",
-	description: "Webtoon comic site",
+	title: "Webtoon A+",
+	description: "Webtoon A+ comic site",
 };
 
 export default function RootLayout({

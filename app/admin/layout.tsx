@@ -34,7 +34,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 			<header className="flex items-center justify-between border-b px-6 py-4">
 				<div className="flex items-center gap-4">
 					<Link href="/" className="text-xl font-bold hover:opacity-80">
-						Webtoon
+						Webtoon A+
 					</Link>
 					<span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
 						Admin

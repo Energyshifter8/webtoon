@@ -80,7 +80,7 @@ export default function ComicPage() {
 						onClick={() => router.push("/")}
 						className="text-xl font-bold gradient-text"
 					>
-						Webtoon
+						Webtoon A+
 					</button>
 					<div className="flex items-center gap-4">
 						<ThemeToggle />

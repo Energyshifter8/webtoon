@@ -98,7 +98,7 @@ export default function AccountPage() {
 			<header className="glass sticky top-0 z-50 border-b border-border/50">
 				<div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-6">
 					<Link href="/" className="text-xl font-bold gradient-text">
-						Webtoon
+						Webtoon A+
 					</Link>
 					<div className="flex items-center gap-4">
 						<ThemeToggle />
@@ -188,7 +188,7 @@ export default function AccountPage() {
 												<span className="font-mono font-medium text-foreground">1234567890</span>
 											</p>
 											<p>
-												Name: <span className="font-medium text-foreground">Webtoon Corp</span>
+													Name: <span className="font-medium text-foreground">Webtoon A+</span>
 											</p>
 										</div>
 										<p className="mt-3 text-xs text-muted-foreground">

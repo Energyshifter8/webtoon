@@ -80,7 +80,7 @@ export default function SignupPage() {
 			<div className="hidden flex-1 items-center justify-center lg:flex">
 				<div className="gradient-hero flex h-full w-full flex-col items-center justify-center p-12 text-white">
 					<div className="animate-float mb-8 text-8xl">✨</div>
-					<h1 className="mb-4 text-4xl font-bold tracking-tight">Join Webtoon</h1>
+					<h1 className="mb-4 text-4xl font-bold tracking-tight">Join Webtoon A+</h1>
 					<p className="max-w-sm text-center text-lg text-white/80">
 						Create your account and unlock a universe of captivating stories and vibrant characters.
 					</p>
@@ -96,10 +96,10 @@ export default function SignupPage() {
 				<div className="w-full max-w-sm space-y-8">
 					<div>
 						<Link href="/" className="mb-8 inline-block text-2xl font-bold gradient-text lg:hidden">
-							Webtoon
+							Webtoon A+
 						</Link>
 						<h2 className="text-3xl font-bold tracking-tight">Create an account</h2>
-						<p className="mt-2 text-sm text-muted-foreground">Start your webtoon adventure today</p>
+						<p className="mt-2 text-sm text-muted-foreground">							Start your Webtoon A+ adventure today</p>
 					</div>
 
 					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
