@@ -10,6 +10,7 @@ interface AuthContextValue {
 	currentUser: User | null;
 	userProfile: UserProfile | null;
 	membershipStatus: MembershipStatus;
+	isAdmin: boolean;
 	loading: boolean;
 	activateMembership: () => Promise<void>;
 }
@@ -49,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 						email: user.email ?? "",
 						displayName: data.displayName,
 						membershipStatus: data.membershipStatus ?? "none",
+						role: data.role ?? "user",
 						createdAt: data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
 					});
 				} else {
@@ -57,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 						email: user.email ?? "",
 						displayName: user.displayName ?? undefined,
 						membershipStatus: "none",
+						role: "user",
 						createdAt: new Date().toISOString(),
 					};
 					setDoc(userDocRef, {
@@ -77,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}, []);
 
 	const membershipStatus = userProfile?.membershipStatus ?? "none";
+	const isAdmin = userProfile?.role === "admin";
 
 	const activateMembership = async () => {
 		if (!currentUser) return;
@@ -86,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	return (
 		<AuthContext.Provider
-			value={{ currentUser, userProfile, membershipStatus, loading, activateMembership }}
+			value={{ currentUser, userProfile, membershipStatus, isAdmin, loading, activateMembership }}
 		>
 			{children}
 		</AuthContext.Provider>

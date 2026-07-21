@@ -23,13 +23,30 @@ service cloud.firestore {
         request.resource.data.membershipStatus == "none";
 
       // Users can update their own document, but only membershipStatus can change (and only to "free")
-      // Admins can update any field
-      allow update: if isOwner(userId) &&
+      // Admins can update any field (including setting "paid")
+      allow update: if (isOwner(userId) &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['membershipStatus']) &&
-        request.resource.data.membershipStatus == "free";
+        request.resource.data.membershipStatus == "free") || isAdmin();
 
       // Only admins can delete user documents
       allow delete: if isAdmin();
+    }
+
+    // Payment requests collection
+    match /paymentRequests/{requestId} {
+      // Users can read their own payment requests; admins can read all
+      allow read: if (request.auth != null && resource.data.uid == request.auth.uid) || isAdmin();
+
+      // Authenticated users can create their own payment requests
+      allow create: if request.auth != null &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.status == "pending";
+
+      // Only admins can update payment requests (confirm/reject)
+      allow update: if isAdmin();
+
+      // No delete allowed
+      allow delete: if false;
     }
   }
 }
