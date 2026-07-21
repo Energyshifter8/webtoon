@@ -10,9 +10,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useLenis } from "@/hooks/use-lenis";
-import { getComics } from "@/lib/comics";
 import { POSTERS } from "@/lib/posters";
-import type { Comic } from "@/types/comic";
 
 const WorldCanvas = dynamic(
 	() => import("@/components/world-canvas").then((mod) => mod.WorldCanvas),
@@ -34,20 +32,11 @@ function useIsMobile(breakpoint = 768): boolean {
 
 export default function Home() {
 	const { currentUser, membershipStatus, loading: authLoading } = useAuth();
-	const [comics, setComics] = useState<Comic[]>([]);
-	const [loading, setLoading] = useState(true);
 	const [authModalOpen, setAuthModalOpen] = useState(false);
 	const [membershipModalOpen, setMembershipModalOpen] = useState(false);
 	const isMobile = useIsMobile();
 
 	useLenis();
-
-	useEffect(() => {
-		getComics()
-			.then(setComics)
-			.catch(() => {})
-			.finally(() => setLoading(false));
-	}, []);
 
 	const handlePosterClick = useCallback(
 		(posterId: string) => {
@@ -64,25 +53,6 @@ export default function Home() {
 			}
 
 			window.location.href = `/comic/${posterId}`;
-		},
-		[currentUser, membershipStatus, authLoading],
-	);
-
-	const handleComicClick = useCallback(
-		(comicId: string) => {
-			if (authLoading) return;
-
-			if (!currentUser) {
-				setAuthModalOpen(true);
-				return;
-			}
-
-			if (membershipStatus === "none") {
-				setMembershipModalOpen(true);
-				return;
-			}
-
-			window.location.href = `/comic/${comicId}`;
 		},
 		[currentUser, membershipStatus, authLoading],
 	);
@@ -136,39 +106,16 @@ export default function Home() {
 
 			{/* Mobile fallback */}
 			{isMobile && (
-				<main className="pt-20">
-					<div className="mb-8 px-6 text-center">
-						<h2 className="mb-2 text-3xl font-bold tracking-tight">
+				<main className="pt-16">
+					<div className="mb-6 px-4 text-center">
+						<h2 className="mb-2 text-2xl font-bold tracking-tight sm:text-3xl">
 							Discover Comics
 						</h2>
-						<p className="text-muted-foreground">
+						<p className="text-sm text-muted-foreground">
 							Browse our collection — no account needed to explore.
 						</p>
 					</div>
-					{!loading && comics.length > 0 && (
-						<MobileFallback comics={comics} onComicClick={handleComicClick} />
-					)}
-				</main>
-			)}
-
-			{/* Loading state */}
-			{loading && (
-				<div className="flex flex-1 items-center justify-center pt-20">
-					<div className="flex flex-col items-center gap-4">
-						<div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-						<p className="text-sm text-muted-foreground">Loading comics...</p>
-					</div>
-				</div>
-			)}
-
-			{/* Empty state */}
-			{!loading && comics.length === 0 && isMobile && (
-				<main className="flex flex-col items-center justify-center gap-4 pt-32 text-center px-6">
-					<div className="text-5xl">📚</div>
-					<p className="text-lg text-muted-foreground">No comics yet.</p>
-					<p className="text-sm text-muted-foreground">
-						Add comics to the <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">comics</code> collection in Firestore.
-					</p>
+					<MobileFallback posters={POSTERS} onPosterClick={handlePosterClick} />
 				</main>
 			)}
 
