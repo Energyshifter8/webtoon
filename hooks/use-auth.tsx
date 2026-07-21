@@ -42,36 +42,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 			const userDocRef = doc(db, "users", user.uid);
 
-			const unsubscribeProfile = onSnapshot(userDocRef, (snapshot) => {
-				if (snapshot.exists()) {
-					const data = snapshot.data();
+			const unsubscribeProfile = onSnapshot(
+				userDocRef,
+				(snapshot) => {
+					if (snapshot.exists()) {
+						const data = snapshot.data();
+						setUserProfile({
+							uid: user.uid,
+							email: user.email ?? "",
+							displayName: data.displayName,
+							membershipStatus: data.membershipStatus ?? "none",
+							role: data.role ?? "user",
+							createdAt: data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
+						});
+					} else {
+						setUserProfile({
+							uid: user.uid,
+							email: user.email ?? "",
+							displayName: user.displayName ?? undefined,
+							membershipStatus: "none",
+							role: "user",
+							createdAt: new Date().toISOString(),
+						});
+					}
+					setLoading(false);
+				},
+				(error) => {
+					console.warn("Firestore snapshot error (rules may not be deployed):", error.message);
 					setUserProfile({
-						uid: user.uid,
-						email: user.email ?? "",
-						displayName: data.displayName,
-						membershipStatus: data.membershipStatus ?? "none",
-						role: data.role ?? "user",
-						createdAt: data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
-					});
-				} else {
-					const newUserProfile: UserProfile = {
 						uid: user.uid,
 						email: user.email ?? "",
 						displayName: user.displayName ?? undefined,
 						membershipStatus: "none",
 						role: "user",
 						createdAt: new Date().toISOString(),
-					};
-					setDoc(userDocRef, {
-						email: user.email,
-						displayName: user.displayName,
-						membershipStatus: "none",
-						createdAt: serverTimestamp(),
 					});
-					setUserProfile(newUserProfile);
-				}
-				setLoading(false);
-			});
+					setLoading(false);
+				},
+			);
 
 			return () => unsubscribeProfile();
 		});
