@@ -71,7 +71,7 @@ export default function Home() {
 	);
 
 	return (
-		<div className="relative min-h-screen bg-zinc-50 dark:bg-black">
+		<div className="relative min-h-screen bg-background">
 			{/* 3D Canvas — fixed fullscreen behind everything */}
 			{!loading && comics.length > 0 && !isMobile && (
 				<Suspense fallback={null}>
@@ -79,31 +79,44 @@ export default function Home() {
 				</Suspense>
 			)}
 
-			{/* Header — sits above Canvas */}
-			<header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between border-b bg-background/80 px-6 py-4 backdrop-blur-md">
-				<h1 className="text-xl font-bold">Webtoon</h1>
-				<div className="flex items-center gap-3">
-					<ThemeToggle />
-					{currentUser ? (
-						<Button variant="ghost" size="sm">
-							{currentUser.displayName || currentUser.email}
-						</Button>
-					) : (
-						<div className="flex gap-2">
-							<Link
-								href="/login"
-								className="inline-flex h-7 items-center gap-1 rounded-lg px-2.5 text-sm font-medium hover:bg-muted hover:text-foreground"
-							>
-								Log in
+			{/* Header — glass effect */}
+			<header className="glass fixed top-0 left-0 right-0 z-50 border-b border-border/40">
+				<div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+					<Link href="/" className="flex items-center gap-2">
+						<span className="text-2xl">📖</span>
+						<span className="text-xl font-bold gradient-text">Webtoon</span>
+					</Link>
+					<div className="flex items-center gap-3">
+						<ThemeToggle />
+						{currentUser ? (
+							<Link href="/account">
+								<Button variant="ghost" size="sm" className="gap-2">
+									<div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+										{(currentUser.displayName || currentUser.email || "U")[0].toUpperCase()}
+									</div>
+									<span className="hidden sm:inline">
+										{currentUser.displayName || currentUser.email}
+									</span>
+								</Button>
 							</Link>
-							<Link
-								href="/signup"
-								className="inline-flex h-7 items-center gap-1.5 rounded-lg bg-primary px-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/80"
-							>
-								Sign up
-							</Link>
-						</div>
-					)}
+						) : (
+							<div className="flex gap-2">
+								<Link href="/login">
+									<Button variant="ghost" size="sm" className="rounded-xl">
+										Log in
+									</Button>
+								</Link>
+								<Link href="/signup">
+									<Button
+										size="sm"
+										className="rounded-xl px-4 font-medium transition-all hover:shadow-lg hover:shadow-primary/25"
+									>
+										Sign up
+									</Button>
+								</Link>
+							</div>
+						)}
+					</div>
 				</div>
 			</header>
 
@@ -112,12 +125,12 @@ export default function Home() {
 				<div style={{ height: `${comics.length * 120 + 200}vh` }} />
 			)}
 
-			{/* Mobile fallback — simple vertical list with fade-on-scroll */}
+			{/* Mobile fallback */}
 			{!loading && comics.length > 0 && isMobile && (
 				<main className="pt-20">
-					<div className="mb-8 text-center">
-						<h2 className="mb-2 text-3xl font-bold tracking-tight text-foreground">
-							Discover Comics
+					<div className="mb-8 px-6 text-center">
+						<h2 className="mb-2 text-3xl font-bold tracking-tight">
+							<span className="gradient-text">Discover</span> Comics
 						</h2>
 						<p className="text-muted-foreground">
 							Browse our collection — no account needed to explore.
@@ -130,18 +143,28 @@ export default function Home() {
 			{/* Loading state */}
 			{loading && (
 				<div className="flex flex-1 items-center justify-center pt-20">
-					<p className="text-muted-foreground">Loading comics...</p>
+					<div className="flex flex-col items-center gap-4">
+						<div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+						<p className="text-sm text-muted-foreground">Loading comics...</p>
+					</div>
 				</div>
 			)}
 
 			{/* Empty state */}
 			{!loading && comics.length === 0 && (
-				<main className="flex flex-col items-center gap-4 pt-20 text-center">
-					<h2 className="text-3xl font-bold tracking-tight text-foreground">Discover Comics</h2>
-					<p className="text-lg text-muted-foreground">No comics yet.</p>
-					<p className="text-sm text-muted-foreground">
-						Add comics to the <code>comics</code> collection in Firestore to see them here.
-					</p>
+				<main className="flex flex-col items-center justify-center gap-6 pt-32 text-center px-6">
+					<div className="text-6xl">📚</div>
+					<div>
+						<h2 className="text-3xl font-bold tracking-tight">
+							<span className="gradient-text">Discover</span> Comics
+						</h2>
+						<p className="mt-3 text-lg text-muted-foreground">No comics yet.</p>
+						<p className="mt-1 text-sm text-muted-foreground">
+							Add comics to the{" "}
+							<code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">comics</code>{" "}
+							collection in Firestore.
+						</p>
+					</div>
 				</main>
 			)}
 

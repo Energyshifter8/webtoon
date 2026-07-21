@@ -7,14 +7,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { auth } from "@/lib/firebase";
@@ -74,50 +67,73 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-md">
-				<DialogHeader>
-					<DialogTitle>Log in to continue</DialogTitle>
-					<DialogDescription>
-						You need an account to read comics. Log in or create a free account.
-					</DialogDescription>
-				</DialogHeader>
-				<form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
-					{error && (
-						<div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
-					)}
-					<div className="flex flex-col gap-2">
-						<Label htmlFor="modal-email">Email</Label>
-						<Input
-							id="modal-email"
-							type="email"
-							placeholder="you@example.com"
-							{...form.register("email")}
-						/>
-						{form.formState.errors.email && (
-							<p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
+			<DialogContent className="sm:max-w-md overflow-hidden p-0">
+				{/* Gradient accent bar */}
+				<div className="gradient-hero h-1.5 w-full" />
+
+				<div className="p-6">
+					<DialogHeader className="mb-6">
+						<DialogTitle className="text-xl">Log in to continue</DialogTitle>
+					</DialogHeader>
+
+					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+						{error && (
+							<div className="rounded-xl border border-destructive/20 bg-destructive/5 p-3.5 text-sm text-destructive">
+								{error}
+							</div>
 						)}
-					</div>
-					<div className="flex flex-col gap-2">
-						<Label htmlFor="modal-password">Password</Label>
-						<Input
-							id="modal-password"
-							type="password"
-							placeholder="Your password"
-							{...form.register("password")}
-						/>
-						{form.formState.errors.password && (
-							<p className="text-xs text-destructive">{form.formState.errors.password.message}</p>
-						)}
-					</div>
-					<DialogFooter className="flex flex-col gap-2 sm:flex-row">
-						<Button type="submit" disabled={loading}>
-							{loading ? "Logging in..." : "Log in"}
-						</Button>
-						<Button type="button" variant="outline" onClick={handleSignup}>
-							Create account
-						</Button>
-					</DialogFooter>
-				</form>
+
+						<div className="space-y-2">
+							<Label htmlFor="modal-email" className="text-sm font-medium">
+								Email
+							</Label>
+							<Input
+								id="modal-email"
+								type="email"
+								placeholder="you@example.com"
+								className="h-11 rounded-xl border-border/50 bg-muted/30 px-4 transition-all focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/20"
+								{...form.register("email")}
+							/>
+							{form.formState.errors.email && (
+								<p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
+							)}
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="modal-password" className="text-sm font-medium">
+								Password
+							</Label>
+							<Input
+								id="modal-password"
+								type="password"
+								placeholder="Your password"
+								className="h-11 rounded-xl border-border/50 bg-muted/30 px-4 transition-all focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/20"
+								{...form.register("password")}
+							/>
+							{form.formState.errors.password && (
+								<p className="text-xs text-destructive">{form.formState.errors.password.message}</p>
+							)}
+						</div>
+
+						<div className="flex flex-col gap-3 pt-2">
+							<Button
+								type="submit"
+								className="h-11 w-full rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-primary/25"
+								disabled={loading}
+							>
+								{loading ? "Logging in..." : "Log in"}
+							</Button>
+							<Button
+								type="button"
+								variant="ghost"
+								onClick={handleSignup}
+								className="h-11 w-full rounded-xl text-muted-foreground hover:text-foreground"
+							>
+								Create account
+							</Button>
+						</div>
+					</form>
+				</div>
 			</DialogContent>
 		</Dialog>
 	);

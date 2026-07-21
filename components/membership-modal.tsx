@@ -2,14 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
 
 interface MembershipModalProps {
@@ -34,22 +27,41 @@ export function MembershipModal({ open, onOpenChange }: MembershipModalProps) {
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-md">
-				<DialogHeader>
-					<DialogTitle>Activate your membership</DialogTitle>
-					<DialogDescription>
+			<DialogContent className="sm:max-w-md overflow-hidden p-0">
+				{/* Gradient accent bar */}
+				<div className="gradient-hero h-1.5 w-full" />
+
+				<div className="p-6 text-center">
+					<div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-4xl">
+						✨
+					</div>
+
+					<DialogHeader className="mb-6">
+						<DialogTitle className="text-xl">Activate your membership</DialogTitle>
+					</DialogHeader>
+
+					<p className="mb-6 text-sm text-muted-foreground leading-relaxed">
 						Even free comics require activating your membership to read. This is completely free —
 						just click below to get started.
-					</DialogDescription>
-				</DialogHeader>
-				<DialogFooter>
-					<Button variant="outline" onClick={() => onOpenChange(false)}>
-						Cancel
-					</Button>
-					<Button onClick={handleActivate} disabled={loading}>
-						{loading ? "Activating..." : "Activate free membership"}
-					</Button>
-				</DialogFooter>
+					</p>
+
+					<div className="flex flex-col gap-3">
+						<Button
+							onClick={handleActivate}
+							disabled={loading}
+							className="h-12 w-full rounded-xl font-medium transition-all hover:shadow-lg hover:shadow-primary/25"
+						>
+							{loading ? "Activating..." : "Activate free membership"}
+						</Button>
+						<Button
+							variant="ghost"
+							onClick={() => onOpenChange(false)}
+							className="h-11 w-full rounded-xl text-muted-foreground hover:text-foreground"
+						>
+							Maybe later
+						</Button>
+					</div>
+				</div>
 			</DialogContent>
 		</Dialog>
 	);
