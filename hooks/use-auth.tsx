@@ -28,24 +28,44 @@ export function useAuth(): AuthContextValue {
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const [currentUser, setCurrentUser] = useState<User | null>(null);
 	const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-	const [loading, setLoading] = useState(true);
+	const [authResolved, setAuthResolved] = useState(false);
+	const [profileResolved, setProfileResolved] = useState(false);
+	const [claimsResolved, setClaimsResolved] = useState(false);
 	const [adminClaim, setAdminClaim] = useState(false);
 
 	useEffect(() => {
+		let claimsAbort = false;
+
 		const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
 			setCurrentUser(user);
 			setAdminClaim(false);
+			setClaimsResolved(false);
 
 			if (!user) {
 				setUserProfile(null);
-				setLoading(false);
+				setAuthResolved(true);
+				setProfileResolved(true);
+				setClaimsResolved(true);
 				return;
 			}
 
+			setAuthResolved(true);
+			setProfileResolved(false);
+
 			// read id token claims to detect custom 'admin' claim
 			getIdTokenResult(user)
-				.then((res) => setAdminClaim(Boolean(res.claims?.admin)))
-				.catch(() => setAdminClaim(false));
+				.then((res) => {
+					if (!claimsAbort) {
+						setAdminClaim(Boolean(res.claims?.admin));
+						setClaimsResolved(true);
+					}
+				})
+				.catch(() => {
+					if (!claimsAbort) {
+						setAdminClaim(false);
+						setClaimsResolved(true);
+					}
+				});
 
 			const userDocRef = doc(db, "users", user.uid);
 
@@ -72,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 							createdAt: new Date().toISOString(),
 						});
 					}
-					setLoading(false);
+					setProfileResolved(true);
 				},
 				(error) => {
 					console.warn("Firestore snapshot error (rules may not be deployed):", error.message);
@@ -84,11 +104,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 						role: "user",
 						createdAt: new Date().toISOString(),
 					});
-					setLoading(false);
+					setProfileResolved(true);
 				},
 			);
 
-			return () => unsubscribeProfile();
+			return () => {
+				claimsAbort = true;
+				unsubscribeProfile();
+			};
 		});
 
 		return () => unsubscribeAuth();
@@ -96,6 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	const membershipStatus = userProfile?.membershipStatus ?? "none";
 	const isAdmin = userProfile?.role === "admin" || adminClaim;
+	const loading = !authResolved || !profileResolved || !claimsResolved;
 
 	const activateMembership = async () => {
 		if (!currentUser) return;
