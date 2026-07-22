@@ -8,14 +8,22 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-	const { isAdmin, loading } = useAuth();
+	const { currentUser, userProfile, isAdmin, loading } = useAuth();
 	const router = useRouter();
 
 	useEffect(() => {
 		if (!loading && !isAdmin) {
+			console.log("[AdminLayout] Redirecting — debug:", {
+				loading,
+				isAdmin,
+				userProfileRole: userProfile?.role,
+				uid: currentUser?.uid,
+				email: currentUser?.email,
+				hasProfile: !!userProfile,
+			});
 			router.push("/");
 		}
-	}, [isAdmin, loading, router]);
+	}, [isAdmin, loading, router, currentUser, userProfile]);
 
 	if (loading) {
 		return (

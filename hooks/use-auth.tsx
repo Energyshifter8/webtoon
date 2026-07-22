@@ -56,12 +56,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			getIdTokenResult(user)
 				.then((res) => {
 					if (!claimsAbort) {
+						console.log("[useAuth] Claims resolved:", { admin: res.claims?.admin, allClaims: Object.keys(res.claims || {}) });
 						setAdminClaim(Boolean(res.claims?.admin));
 						setClaimsResolved(true);
 					}
 				})
-				.catch(() => {
+				.catch((err) => {
 					if (!claimsAbort) {
+						console.warn("[useAuth] Claims error:", err);
 						setAdminClaim(false);
 						setClaimsResolved(true);
 					}
@@ -74,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				(snapshot) => {
 					if (snapshot.exists()) {
 						const data = snapshot.data();
+						console.log("[useAuth] Profile loaded from Firestore:", { role: data.role, membershipStatus: data.membershipStatus, uid: user.uid });
 						setUserProfile({
 							uid: user.uid,
 							email: user.email ?? "",
@@ -83,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 							createdAt: data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
 						});
 					} else {
+						console.log("[useAuth] No Firestore doc for uid:", user.uid);
 						setUserProfile({
 							uid: user.uid,
 							email: user.email ?? "",
@@ -95,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 					setProfileResolved(true);
 				},
 				(error) => {
-					console.warn("Firestore snapshot error (rules may not be deployed):", error.message);
+					console.warn("[useAuth] Firestore snapshot error:", error.message, error.code);
 					setUserProfile({
 						uid: user.uid,
 						email: user.email ?? "",
@@ -120,6 +124,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const membershipStatus = userProfile?.membershipStatus ?? "none";
 	const isAdmin = userProfile?.role === "admin" || adminClaim;
 	const loading = !authResolved || !profileResolved || !claimsResolved;
+
+	if (!loading) {
+		console.log("[useAuth] Final state:", { isAdmin, role: userProfile?.role, adminClaim, uid: currentUser?.uid });
+	}
 
 	const activateMembership = async () => {
 		if (!currentUser) return;
