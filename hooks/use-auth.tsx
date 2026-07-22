@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 							email: user.email ?? "",
 							displayName: data.displayName,
 							membershipStatus: data.membershipStatus ?? "none",
-							role: data.role ?? "user",
+							role: (data.role ?? "user").trim(),
 							createdAt: data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
 						});
 					} else {

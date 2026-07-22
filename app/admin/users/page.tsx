@@ -64,7 +64,7 @@ export default function AdminUsersPage() {
 						uid: docSnap.id,
 						email: d.email || "",
 						displayName: d.displayName || "",
-						role: (d.role || "user") as UserRole,
+						role: ((d.role || "user").trim()) as UserRole,
 						membershipStatus: (d.membershipStatus || "none") as MembershipStatus,
 						createdAt: d.createdAt?.toDate?.()?.toISOString() ?? "",
 						lastLoginAt: d.lastLoginAt?.toDate?.()?.toISOString() ?? "",
