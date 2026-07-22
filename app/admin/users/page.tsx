@@ -18,16 +18,19 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import type { MembershipStatus, UserRole } from "@/types/user";
 
 interface UserData {
 	uid: string;
 	email: string;
 	displayName: string;
-	role: string;
-	membershipStatus: string;
+	role: UserRole;
+	membershipStatus: MembershipStatus;
 	createdAt: string;
 	lastLoginAt: string;
 }
+
+const MEMBERSHIP_OPTIONS: MembershipStatus[] = ["none", "free", "paid", "premium"];
 
 export default function AdminUsersPage() {
 	const { currentUser, isAdmin, loading: authLoading } = useAuth();
@@ -37,7 +40,7 @@ export default function AdminUsersPage() {
 	const [users, setUsers] = useState<UserData[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [search, setSearch] = useState("");
-	const [membershipFilter, setMembershipFilter] = useState<string>("all");
+	const [membershipFilter, setMembershipFilter] = useState<MembershipStatus | "all">("all");
 	const [updatingId, setUpdatingId] = useState<string | null>(null);
 	const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
 	const [pendingPromote, setPendingPromote] = useState<{ uid: string; email: string } | null>(null);
@@ -61,8 +64,8 @@ export default function AdminUsersPage() {
 						uid: docSnap.id,
 						email: d.email || "",
 						displayName: d.displayName || "",
-						role: d.role || "user",
-						membershipStatus: d.membershipStatus || "none",
+						role: (d.role || "user") as UserRole,
+						membershipStatus: (d.membershipStatus || "none") as MembershipStatus,
 						createdAt: d.createdAt?.toDate?.()?.toISOString() ?? "",
 						lastLoginAt: d.lastLoginAt?.toDate?.()?.toISOString() ?? "",
 					};
@@ -84,7 +87,7 @@ export default function AdminUsersPage() {
 		return matchesSearch && matchesMembership;
 	});
 
-	async function updateMembership(uid: string, status: string) {
+	async function updateMembership(uid: string, status: MembershipStatus) {
 		setUpdatingId(uid);
 		try {
 			await updateDoc(doc(db, "users", uid), { membershipStatus: status });
@@ -97,7 +100,7 @@ export default function AdminUsersPage() {
 		}
 	}
 
-	async function updateRole(uid: string, role: string) {
+	async function updateRole(uid: string, role: UserRole) {
 		setUpdatingId(uid);
 		try {
 			await updateDoc(doc(db, "users", uid), { role });
@@ -110,7 +113,7 @@ export default function AdminUsersPage() {
 		}
 	}
 
-	function handlePromoteClick(uid: string, email: string, currentRole: string) {
+	function handlePromoteClick(uid: string, email: string, currentRole: UserRole) {
 		if (currentRole === "admin") {
 			updateRole(uid, "user");
 			return;
@@ -140,16 +143,15 @@ export default function AdminUsersPage() {
 					onChange={(e) => setSearch(e.target.value)}
 					className="max-w-sm"
 				/>
-				<Select value={membershipFilter} onValueChange={setMembershipFilter}>
+				<Select value={membershipFilter} onValueChange={(val) => setMembershipFilter(val as MembershipStatus | "all")}>
 					<SelectTrigger className="w-[180px]">
 						<SelectValue placeholder="Membership" />
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="all">All</SelectItem>
-						<SelectItem value="none">None</SelectItem>
-						<SelectItem value="free">Free</SelectItem>
-						<SelectItem value="paid">Paid</SelectItem>
-						<SelectItem value="premium">Premium</SelectItem>
+						{MEMBERSHIP_OPTIONS.map((opt) => (
+							<SelectItem key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</SelectItem>
+						))}
 					</SelectContent>
 				</Select>
 			</div>
@@ -199,17 +201,16 @@ export default function AdminUsersPage() {
 									<td className="px-4 py-3">
 										<Select
 											value={user.membershipStatus}
-											onValueChange={(val) => updateMembership(user.uid, val)}
+											onValueChange={(val) => updateMembership(user.uid, val as MembershipStatus)}
 											disabled={updatingId === user.uid}
 										>
 											<SelectTrigger className="h-8 w-[100px] text-xs">
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>
-												<SelectItem value="none">None</SelectItem>
-												<SelectItem value="free">Free</SelectItem>
-												<SelectItem value="paid">Paid</SelectItem>
-												<SelectItem value="premium">Premium</SelectItem>
+												{MEMBERSHIP_OPTIONS.map((opt) => (
+													<SelectItem key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</SelectItem>
+												))}
 											</SelectContent>
 										</Select>
 									</td>
