@@ -58,6 +58,7 @@ export default function SignupPage() {
 			await setDoc(doc(db, "users", user.uid), {
 				email: data.email,
 				displayName: data.displayName,
+				role: "user",
 				membershipStatus: "none",
 				createdAt: serverTimestamp(),
 			});
