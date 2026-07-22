@@ -42,6 +42,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 				</div>
 				<div className="flex items-center gap-3">
 					<ThemeToggle />
+					<Link href="/admin/users">
+						<Button variant="ghost" size="sm">
+							Users
+						</Button>
+					</Link>
 					<Link href="/admin/upload">
 						<Button variant="ghost" size="sm">
 							Upload
